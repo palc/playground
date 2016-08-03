@@ -557,6 +557,9 @@ else
     mv *kronaInput.txt *output-kraken.txt *report-kraken.txt *taxonomy.krona.html *taxonomy.krona.html.files kraken
 fi
 
+# Removed Trimmed reads
+rm ${strain}_Trimmed_R*
+
 endtime=`date +%s`
 runtime=$((endtime-starttime))
 
