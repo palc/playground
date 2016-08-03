@@ -1,0 +1,12 @@
+
+#prep for krakenreadfinder.sh from kraken results
+mkdir isolated_reads; cp *output.txt *report.txt isolated_reads; cp originalreads/*gz isolated_reads; cd isolated_reads
+
+less *report*
+/Piro
+
+krakenreadfinder.sh -abn # #
+
+
+# Get stats from reports
+for i in *-kraken-report.txt; do unclass=`grep "unclassified$" $i | awk '{print $2}'`; root=`grep "root" $i | awk '{print $2}'`; piro=`grep "Piroplasmida" $i | awk '{print $2}'`; perc=`awk -v u=${unclass} -v c=${root} -v p=${piro} 'BEGIN {print p/(u+c)}'`; printf "%s, unclassified reads: %'d, classified reads: %'d, Piroplasmida reads: %'d, fraction of total reads: %.2f\n" ${i%-kraken-report.txt} ${unclass} ${root} ${piro} ${perc}; done 

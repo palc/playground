@@ -1,0 +1,6 @@
+mkdir summaries
+find . -name "*summaryfile" -exec cp {} summaries/ \;
+for i in *; do echo $i >> summary; grep "Alignment" -A 5 $i >> summary; echo "" >> summary; done
+
+
+i=filename; sed 's/Alignment stats (reference guided)/Alignment_stats_(reference_guided)/' $i | sed 's/reference used/reference_used/' | sed 's/read count/read_count/' | sed 's/percent cov/percent_cov/' | sed 's/ave depth/ave_depth/' > ${i}-update

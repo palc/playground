@@ -1,0 +1,9 @@
+samtools --version | egrep "samtools|htslib" | sed 's/Using //'
+java -version
+
+java -Xmx4g -jar $picard FilterVcf --version 2> picardversion; 
+echo "Picard: `cat picardversion`"; rm picardversion
+
+java -Xmx4g -jar $gatk FilterVcf --version 2> gatkversion; 
+echo "GATK: `cat gatkversion`"; rm gatkversion
+
