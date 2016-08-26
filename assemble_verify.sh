@@ -174,7 +174,7 @@ fi
 # zip fastq/s if not already
 if [[ -s $(ls *fastq | head -1) ]]; then 
     printf "Files being zipped\n\n"
-    pigz *fastq
+    gzip *fastq
 fi
 
 ls -lh *gz | awk '{print $5, $9}' > fileinfo  
@@ -346,7 +346,7 @@ else
             kmer=51
         fi
         if [ $((kmer%2)) -eq 0 ]; then ((kmer+=1)); echo "kmer $kmer"; else echo "kmer: $kmer"; fi
-        pigz -d *fastq.gz
+        gunzip *fastq.gz
         if [[ $readtype == paired ]]; then
             Ray -o assembly-ray -p ${read1%.gz} ${read2%.gz} &> raylog
             file="./assembly-ray/Scaffolds.fasta"
@@ -354,7 +354,7 @@ else
             Ray -o assembly-ray -s ${read1%.gz} &> raylog &> raylog
             file="./assembly-ray/Scaffolds.fasta" 
         fi
-        pigz  *fastq
+        gzip  *fastq
     fi
     
     histo

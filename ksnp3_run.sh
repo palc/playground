@@ -168,10 +168,10 @@ email_list="Tod.P.Stuber@aphis.usda.gov"
 cat mytempfile | mutt -s "kSNP complete: ${dir_name}" -a ${dir_name}_tipAlleleCounts-ML.tre ${dir_name}_tipAlleleCounts-majority-${majority}.tre ${dir_name}-ML.pdf ${dir_name}-majority-${majority}.pdf log.txt -- $email_list
 
 # remove the largest files, likely not needed
-#rm ./run/core_SNPs
-#rm ./run/nonCore_SNPs
-#rm ./run/SNPs_all
+rm ./run/core_SNPs
+rm ./run/nonCore_SNPs
+rm ./run/SNPs_all
 
-#cp -r ../${dir_name} /bioinfo11/TStuber/Results/temp
+cp -r ../${dir_name} /bioinfo11/TStuber/Results/temp
 
 # created 2016-07-21 by stuber
