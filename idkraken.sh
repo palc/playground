@@ -97,7 +97,8 @@ if [[ $1 == jhu_flu ]]; then
 
 elif [[ $1 == std ]] || [[ $1 == host ]]; then
 	cut -f2,3 $sampleName-kraken-output.txt > $sampleName-kronaInput.txt
-        ktImportTaxonomy -a $sampleName-kronaInput.txt
+        # removed -a 
+        ktImportTaxonomy $sampleName-kronaInput.txt
         mv taxonomy.krona.html $sampleName-taxonomy.krona.html
         mv taxonomy.krona.html.files $sampleName-taxonomy.krona.html.files
 else
