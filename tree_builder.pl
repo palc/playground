@@ -161,7 +161,6 @@ print "out_alignment_file: $out_alignment_file\n";
 
 `raxmlHPC-SSE3 -f a -s $out_alignment_file -p 12345 -x 12345 -# 100 -m GTRCAT -n $tree_file`
 
-#`rm *dnd *reduced RAxML_bootstrap* RAxML_info* RAxML_bipartitions*`
-
+`rm *dnd *reduced RAxML_bootstrap* RAxML_info* RAxML_bipartitions*`
 
 # tstuber 2016-10-20
