@@ -14,6 +14,8 @@ print "# --> BEGIN\n\n";
 print "Working on: $infasta\n";
 (my $file_name = $infasta) =~ s/.fasta//;
 
+open (my $log, '>', "log_" . $file_name . ".txt") or die "$!";
+
 my $outfile_name = $file_name . "-hformat.fasta";
 open(my $out_handle, ">", $outfile_name)
     or die "Could not open file $outfile_name";
@@ -41,7 +43,7 @@ close $out_handle;
 
 my $total_count=0;
 my $total_length=0;
-print "outfile_name: -$outfile_name-\n";
+print "outfile_name: $outfile_name\n";
 my $infasta_obj = Bio::SeqIO->new(-file => $outfile_name, -format => "fasta");
 while (my $fasta_obj = $infasta_obj->next_seq){
     $total_count++;
@@ -52,13 +54,16 @@ while (my $fasta_obj = $infasta_obj->next_seq){
 }
 
 print "total_count: $total_count\n";
+print $log "Total FASTA sequences in file: $total_count\n";
 my $average_length = $total_length/$total_count;
 print "\nAverage FASTA length: $average_length\n\n";
-
+print $log "Average FASTA length: $average_length\n\n";
 my $minus_number=90;
 my $select_size = $average_length - $minus_number;
 #print "Removing FASTAs < $select_size\n";
 print "If sequences $minus_number less than the average of $average_length they are removed and listed below...\n";
+print $log "If sequences $minus_number less than the average of $average_length they are removed and listed below...\n";
+
 $infasta_obj = Bio::SeqIO->new(-file => $outfile_name, -format => "fasta");
 my $select_file = "$file_name" . "_selected.fasta";
 my $seqout_obj = Bio::SeqIO->new(-file => ">$select_file", -fomat => 'fasta');
@@ -72,6 +77,7 @@ while ( my $seq_obj = $infasta_obj->next_seq ) {
         $seqout_obj->write_seq($seq_obj);
     }else{
         print "### CAUTION $scaffold_length bases < threshold of $select_size bases. REMOVED --> $scaffold_display_display_id\n\n";
+        print $log "### CAUTION $scaffold_length bases < threshold of $select_size bases. REMOVED --> $scaffold_display_display_id\n\n";
     }
 }
 
@@ -80,7 +86,6 @@ $seqout_obj->close();
 ###
 print "T-Coffee running...\n\n";
 `t_coffee -in=$select_file -mode=regular -output=fasta_aln -case=upper -run_name=$select_file -clean_seq_name=1 &> /dev/null`;
-print "T-Coffee finished\n";
 ###
 
 $total_count=0;
@@ -102,12 +107,16 @@ while (my $fasta_obj = $in_fasta_obj->next_seq){
 my $length_ave=$add_all_lengths/$total_count;
 if ($length == $length_ave) {
     print "--> Can continue all incoming lengths the same\n";
+    print $log "--> Can continue all incoming lengths the same\n";
 } else {
+    print $log "\n####FASTA sizes are not all the same therefore not in alignment\n\n###SCRIPT DIED AND EXITED";
     die "\n####FASTA sizes are not all the same therefore not in alignment\n\n"
 }
 
 print "\nTotal contig count: \t $total_count\n";
+print $log "\nTotal contig count: \t $total_count\n";
 print "Alignment file incoming FASTA sizes: $length_ave\n";
+print $log "Alignment file incoming FASTA sizes: $length_ave\n";
 
 # find the position to cut at 5' end
 sub cut_forward_ends {
@@ -151,7 +160,9 @@ while ($check_character eq "-"){
 }
 
 print "\n***forward_cut_position: $forward_cut_position\n";
+print $log "\n***forward_cut_position: $forward_cut_position\n";
 print "***reverse_cut_position: $reverse_cut_position\n\n";
+print $log "***reverse_cut_position: $reverse_cut_position\n\n";
 
 # write out
 my $out_alignment_file = "$file_name" . "-trimmed" . ".fasta_aln";
@@ -180,24 +191,27 @@ while (my $fasta_obj = $in_fasta_obj->next_seq){
 $length_ave=$add_all_lengths/$total_count;
 if ($length == $length_ave) {
     print "--> Can continue all outgoing lengths the same\n";
+    print $log "--> Can continue all outgoing lengths the same\n";
 } else {
+    print $log "\n####FASTA sizes are not all the same therefore not in alignment\n\nSCRIPT DIED AND EXITED-";
     die "\n####FASTA sizes are not all the same therefore not in alignment\n\n"
 }
 
 print "\nTotal contig count: \t $total_count\n";
+print $log "\nTotal contig count: \t $total_count\n";
 print "Trimmed FASTA sizes in alignment file: $length_ave\n\n";
+print $log "Trimmed FASTA sizes in alignment file: $length_ave\n\n";
 
 my $tree_file="$file_name" . ".tre";
 
 print "tree file: $tree_file\n";
 print "out_alignment_file: $out_alignment_file\n";
 
-print "exiting\n";
-exit;
-print "after exit\n";
-
+print "RAxML running...\n";
 `raxmlHPC-SSE3 -f a -s $out_alignment_file -p 12345 -x 12345 -# 100 -m GTRCAT -n $tree_file`;
 
 `rm *dnd *reduced RAxML_bootstrap* RAxML_info* RAxML_bipartitions*`;
 
+print "\n### DONE\n\n";
+print $log "\n### DONE\n";
 # tstuber 2016-10-20
