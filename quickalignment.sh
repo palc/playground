@@ -7,6 +7,23 @@ echo "File info."
 ls -lh *
 echo ""
 
+picard=`which picard.jar`
+if [[ -z $picard ]]; then
+    echo "picard.jar not in PATH"
+    echo "picard version >1.14"
+    echo "Add picard.jar to PATH"
+    echo "See line: $LINENO"
+    exit 1
+fi
+
+gatk=`which GenomeAnalysisTK.jar`
+if [[ -z $gatk ]]; then
+    echo "GenomeAnalysisTK.jar is not in PATH"
+    echo "Add GenomeAnalysisTK.jar to PATH"
+    echo "See line: $LINENO"
+    exit 1
+fi
+
 # Grab reads and reference and place them in variables
 ref=`ls | grep .fasta`
 echo "Reference Input:  $ref"
@@ -64,7 +81,8 @@ echo "***bwa index $r"
 bwa index $ref
 
 echo "***Making Sam file"
-bwa mem -M -t 16 -R @RG"\t"ID:"$n""\t"PL:ILLUMINA"\t"PU:"$n"_RG1_UNIT1"\t"LB:"$n"_LIB1"\t"SM:"$n" $ref $forReads $revReads > $n.sam
+#adding -B 8 will require reads to have few mismatches to align to reference.  -B 1 will allow more mismatch per read.
+bwa mem -M -B 8 -t 16 -R @RG"\t"ID:"$n""\t"PL:ILLUMINA"\t"PU:"$n"_RG1_UNIT1"\t"LB:"$n"_LIB1"\t"SM:"$n" $ref $forReads $revReads > $n.sam
 
 samtools view -bh -T $ref $n.sam > $n.all.bam
 #Strip off the unmapped reads
