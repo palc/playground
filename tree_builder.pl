@@ -6,7 +6,6 @@ use warnings;
 use Bio::Seq;
 use Bio::SeqIO;
 
-# Keep scaffolds >850 and get strand orientation
 my $infasta = $ARGV[0];
 if (not defined $infasta) {
     die "ERROR!!! --> An input file was not provided.  Provide FASTA!"
@@ -15,34 +14,68 @@ print "# --> BEGIN\n\n";
 print "Working on: $infasta\n";
 (my $file_name = $infasta) =~ s/.fasta//;
 
+my $outfile_name = $file_name . "-hformat.fasta";
+open(my $out_handle, ">", $outfile_name)
+    or die "Could not open file $outfile_name";
+
+my $infastafirst_obj = Bio::SeqIO->new(-file => $infasta, -format => "fasta");
+while (my $fasta_obj = $infastafirst_obj->next_seq){
+    my $header = $fasta_obj->desc;
+    $header =~/(\(.*\)\))/;
+    my $main_desc = $1;
+    $main_desc =~ s/ /_/g;
+    $main_desc =~ s/\(/_/;
+    $main_desc =~ s/\(/_/;
+    $main_desc =~ s/\)/_/g;
+    $main_desc =~ s/_-/-/g;
+    $main_desc =~ s:/:-:g;
+    $main_desc =~ s/__/_/;
+    $main_desc =~ s/__/_/;
+    $main_desc =~ s/^_//;
+    $main_desc =~ s/_$//;
+    print $out_handle ">$main_desc\n";
+    my $sequence = $fasta_obj->seq;
+    print $out_handle "$sequence\n";
+}
+close $out_handle;
+
 my $total_count=0;
 my $total_length=0;
-my $infasta_obj = Bio::SeqIO->new(-file => $infasta, -format => "fasta");
+print "outfile_name: -$outfile_name-\n";
+my $infasta_obj = Bio::SeqIO->new(-file => $outfile_name, -format => "fasta");
 while (my $fasta_obj = $infasta_obj->next_seq){
     $total_count++;
     my $length = $fasta_obj->length;
+#    print "length: $length\n";
     $total_length = $total_length + $length;
+#    print "total_length: $total_length\n";
 }
+
+print "total_count: $total_count\n";
 my $average_length = $total_length/$total_count;
 print "\nAverage FASTA length: $average_length\n\n";
 
-my $select_size = $average_length - 90;
+my $minus_number=90;
+my $select_size = $average_length - $minus_number;
 #print "Removing FASTAs < $select_size\n";
-
-$infasta_obj = Bio::SeqIO->new(-file => $infasta, -format => "fasta");
+print "If sequences $minus_number less than the average of $average_length they are removed and listed below...\n";
+$infasta_obj = Bio::SeqIO->new(-file => $outfile_name, -format => "fasta");
 my $select_file = "$file_name" . "_selected.fasta";
 my $seqout_obj = Bio::SeqIO->new(-file => ">$select_file", -fomat => 'fasta');
 while ( my $seq_obj = $infasta_obj->next_seq ) {
     # print the sequence
     my $scaffold_length = $seq_obj->length;
-    my $scaffold_display_desc = $seq_obj->desc;
+    my $scaffold_display_display_id = $seq_obj->display_id;
+#    print "scaffold_length: $scaffold_length\n";
+#    print "display_id: $scaffold_display_display_id\n";
     if ( $scaffold_length > $select_size ) {
-        #print "Length of $scaffold_display_desc > $select_size bases\n";
         $seqout_obj->write_seq($seq_obj);
     }else{
-        print "### CAUTION < $select_size bases. REMOVED --> Length of $scaffold_display_desc\n\n";
+        print "### CAUTION $scaffold_length bases < threshold of $select_size bases. REMOVED --> $scaffold_display_display_id\n\n";
     }
 }
+
+$seqout_obj->close();
 
 ###
 print "T-Coffee running...\n\n";
@@ -159,8 +192,12 @@ my $tree_file="$file_name" . ".tre";
 print "tree file: $tree_file\n";
 print "out_alignment_file: $out_alignment_file\n";
 
-`raxmlHPC-SSE3 -f a -s $out_alignment_file -p 12345 -x 12345 -# 100 -m GTRCAT -n $tree_file`
+print "exiting\n";
+exit;
+print "after exit\n";
 
-`rm *dnd *reduced RAxML_bootstrap* RAxML_info* RAxML_bipartitions*`
+`raxmlHPC-SSE3 -f a -s $out_alignment_file -p 12345 -x 12345 -# 100 -m GTRCAT -n $tree_file`;
+
+`rm *dnd *reduced RAxML_bootstrap* RAxML_info* RAxML_bipartitions*`;
 
 # tstuber 2016-10-20
