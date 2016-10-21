@@ -68,10 +68,10 @@ bwa mem -M -t 16 -R @RG"\t"ID:"$n""\t"PL:ILLUMINA"\t"PU:"$n"_RG1_UNIT1"\t"LB:"$n
 
 samtools view -bh -T $ref $n.sam > $n.all.bam
 #Strip off the unmapped reads
-#samtools view -h -f4 $n.all.bam > $n.unmappedReads.sam
+#samtools view -h -F4 $n.all.bam > $n.mappedReads.sam
 
 #Create fastqs of unmapped reads to assemble
-#java -Xmx6g -jar ${picard}SamToFastq.jar INPUT=$n.unmappedReads.sam FASTQ=${n}-unmapped_R1.fastq SECOND_END_FASTQ=${n}-unmapped_R2.fastq
+#java -Xmx4g -jar ${picard} SamToFastq INPUT=$n.mappedReads.sam FASTQ=${n}-dedup-filtered_R1.fastq SECOND_END_FASTQ=${n}-dedup-filtered_R2.fastq
 #rm $n.all.bam
 #rm $n.unmappedReads.sam
 #(abyss-pe name=${n}_abyss k=64 in="${n}-unmapped_R1.fastq ${n}-unmapped_R1.fastq" && blast-contigs.sh ./*-8.fa) &
@@ -110,6 +110,8 @@ samtools index $n.sorted.bam
 
 echo "***Marking Duplicates"
 java -Xmx4g -jar  ${picard} MarkDuplicates INPUT=$n.sorted.bam OUTPUT=$n.dup.bam METRICS_FILE=$n.FilteredReads.xls ASSUME_SORTED=true REMOVE_DUPLICATES=true
+samtools view -h -F4 $n.dup.bam > $n.dedupmappedReads.sam
+java -Xmx4g -jar ${picard} SamToFastq INPUT=$n.dedupmappedReads.sam FASTQ=${n}-dedup-filtered_R1.fastq SECOND_END_FASTQ=${n}-dedup-filtered_R2.fastq
 
 echo "***Index $n.dup.bam"
 samtools index $n.dup.bam
