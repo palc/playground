@@ -6,6 +6,9 @@ use warnings;
 use Bio::Seq;
 use Bio::SeqIO;
 
+# INPUT USAGE: $$ tree_builder.l <in.fasta>
+# in.fasta containing fastas to align
+
 my $infasta = $ARGV[0];
 if (not defined $infasta) {
     die "ERROR!!! --> An input file was not provided.  Provide FASTA!"
@@ -14,8 +17,10 @@ print "# --> BEGIN\n\n";
 print "Working on: $infasta\n";
 (my $file_name = $infasta) =~ s/.fasta//;
 
+# Output log file
 open (my $log, '>', "log_" . $file_name . ".txt") or die "$!";
 
+# reformat the headers, written specifically for flu
 my $outfile_name = $file_name . "-hformat.fasta";
 open(my $out_handle, ">", $outfile_name)
     or die "Could not open file $outfile_name";
@@ -51,8 +56,10 @@ while (my $fasta_obj = $infastafirst_obj->next_seq){
     print $out_handle ">$main_desc\n";
     print $out_handle "$sequence\n";
 }
+# without this close feed to next while does not work
 close $out_handle;
 
+# get the average contig length
 my $total_count=0;
 my $total_length=0;
 print "outfile_name: $outfile_name\n";
@@ -76,6 +83,7 @@ my $select_size = $average_length - $minus_number;
 print "If sequences $minus_number less than the average of $average_length they are removed and listed below...\n";
 print $log "If sequences $minus_number less than the average of $average_length they are removed and listed below...\n";
 
+# if fasta less than select size remove from anlaysis
 $infasta_obj = Bio::SeqIO->new(-file => $outfile_name, -format => "fasta");
 my $select_file = "$file_name" . "_selected.fasta";
 my $seqout_obj = Bio::SeqIO->new(-file => ">$select_file", -fomat => 'fasta');
@@ -96,10 +104,12 @@ while ( my $seq_obj = $infasta_obj->next_seq ) {
 $seqout_obj->close();
 
 ###
+# T-Coffee to align sequences
 print "T-Coffee running...\n\n";
 `t_coffee -in=$select_file -mode=regular -output=fasta_aln -case=upper -run_name=$select_file -clean_seq_name=1 &> /dev/null`;
 ###
 
+# Remove "-" ends...
 $total_count=0;
 my $add_all_lengths=0;
 my $length;
@@ -176,6 +186,7 @@ print $log "\n***forward_cut_position: $forward_cut_position\n";
 print "***reverse_cut_position: $reverse_cut_position\n\n";
 print $log "***reverse_cut_position: $reverse_cut_position\n\n";
 
+# gapped "-" ends removed
 # write out
 my $out_alignment_file = "$file_name" . "-trimmed" . ".fasta_aln";
 my $outseq_obj = Bio::SeqIO->new(-file => ">$out_alignment_file", -format => 'fasta');
@@ -219,11 +230,21 @@ my $tree_file="$file_name" . ".tre";
 print "tree file: $tree_file\n";
 print "out_alignment_file: $out_alignment_file\n";
 
+# run aligned, trimmed "-" gapped ends FASTAs in RAxML
 print "RAxML running...\n";
 `raxmlHPC-SSE3 -f a -s $out_alignment_file -p 12345 -x 12345 -# 100 -m GTRCAT -n $tree_file`;
 
+# remove unneeded files
 `rm *dnd *reduced RAxML_bootstrap* RAxML_info* RAxML_bipartitions*`;
 
+my $svgname = $file_name . ".svg";
+my $pdfname = $file_name . ".pdf";
+my $raxmlname = "RAxML_bestTree." . $tree_file;
+print "raxmlname: $raxmlname\n";
+
+# create svg and pdf trees
+`cat $raxmlname | nw_display -s -S -w 1300 -t -v 30 -i 'opacity:0' -b 'opacity:0' -l 'font-size:18;font-family:serif;font-style:italic' -d 'stroke-width:1;stroke:blue' - > $svgname && inkscape -f $svgname -A $pdfname`;
+             
 print "\n### DONE\n\n";
 print $log "\n### DONE\n";
 # tstuber 2016-10-20
