@@ -23,20 +23,32 @@ open(my $out_handle, ">", $outfile_name)
 my $infastafirst_obj = Bio::SeqIO->new(-file => $infasta, -format => "fasta");
 while (my $fasta_obj = $infastafirst_obj->next_seq){
     my $header = $fasta_obj->desc;
-    $header =~/(\(.*\)\))/;
-    my $main_desc = $1;
-    $main_desc =~ s/ /_/g;
-    $main_desc =~ s/\(/_/;
-    $main_desc =~ s/\(/_/;
-    $main_desc =~ s/\)/_/g;
-    $main_desc =~ s/_-/-/g;
-    $main_desc =~ s:/:-:g;
-    $main_desc =~ s/__/_/;
-    $main_desc =~ s/__/_/;
-    $main_desc =~ s/^_//;
-    $main_desc =~ s/_$//;
-    print $out_handle ">$main_desc\n";
     my $sequence = $fasta_obj->seq;
+    my $main_desc;
+    if ($header =~ /\(/ ){
+        #print "there is a parethesis in header\n";
+        $header =~/(\(.*\)\))/;
+        $main_desc = $1;
+        $main_desc =~ s/ /_/g;
+        $main_desc =~ s/\(/_/;
+        $main_desc =~ s/\(/_/;
+        $main_desc =~ s/\)/_/g;
+        $main_desc =~ s/_-/-/g;
+        $main_desc =~ s:/:-:g;
+        $main_desc =~ s/__/_/;
+        $main_desc =~ s/__/_/;
+        $main_desc =~ s/^_//;
+        $main_desc =~ s/_$//;
+    }else{
+        #print "there is NOT a parethesis\n";
+        $main_desc = $header;
+        $main_desc =~ s/ /_/g;
+        $main_desc =~ s/__/_/;
+        $main_desc =~ s/__/_/;
+        $main_desc =~ s/^_//;
+        $main_desc =~ s/_$//;
+    }
+    print $out_handle ">$main_desc\n";
     print $out_handle "$sequence\n";
 }
 close $out_handle;
