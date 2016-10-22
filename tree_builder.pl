@@ -77,7 +77,8 @@ my $select_size = $average_size - $minus_number;
 print "If sequences $minus_number less than the average of $average_size they are removed and listed below...\n";
 print $log "If sequences $minus_number less than the average of $average_size they are removed and listed below...\n";
 
-open (my $out_file, '>', "$file_name" . "_selected.fasta") or die "$!";
+my $select_file = $file_name . "_selected.fasta";
+open (my $out_file, '>', $select_file) or die "$!";
 
 while (my ($key, $value) = each %sequences) {
     my $value_length = length $value;
