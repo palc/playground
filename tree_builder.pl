@@ -4,6 +4,8 @@ use strict;
 use warnings;
 use Bio::SeqIO;
 
+# Usage: $$ tree_builder.pl <in.fasta>
+# in.fasta contains list of genomes to aligned and build tree
 my $infasta = $ARGV[0];
 if (not defined $infasta) {
     die "ERROR!!! --> An input file was not provided.  Provide FASTA!"
@@ -15,6 +17,9 @@ print "# --> BEGIN\n\n";
 # Output log file
 open (my $log, '>', "log_" . $file_name . ".txt") or die "$!";
 
+# Create hash
+# desc and display_id placed into key
+# sequence placed into value
 my %sequences;
 my $seqio = Bio::SeqIO->new(-file => $infasta, -format => "fasta");
 while(my$seqobj = $seqio->next_seq) {
@@ -51,6 +56,7 @@ while(my$seqobj = $seqio->next_seq) {
     $sequences{$main_desc} = $seq;
 }
 
+# Get average FASTA length
 my $total_count=0;
 my $total_length=0;
 
@@ -59,8 +65,6 @@ my $total_seq = 0;
 print "Number of sequences: $size\n";
 while (my ($key, $value) = each %sequences) {
     $total_seq = $total_seq + length $value;
-    #    print $key, "\n";
-    #    print $value, "\n";
 }
 
 print "total_count: $size\n";
@@ -71,6 +75,7 @@ my $average_size = $total_seq / $size;
 print "average size: $average_size\n";
 print $log "Average FASTA length: $average_size\n\n";
 
+# Remove genomes < $select_size
 my $minus_number=90;
 my $select_size = $average_size - $minus_number;
 
