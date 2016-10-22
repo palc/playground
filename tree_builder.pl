@@ -2,37 +2,31 @@
 
 use strict;
 use warnings;
-
-use Bio::Seq;
 use Bio::SeqIO;
-
-# INPUT USAGE: $$ tree_builder.l <in.fasta>
-# in.fasta containing fastas to align
 
 my $infasta = $ARGV[0];
 if (not defined $infasta) {
     die "ERROR!!! --> An input file was not provided.  Provide FASTA!"
 }
-print "# --> BEGIN\n\n";
-print "Working on: $infasta\n";
 (my $file_name = $infasta) =~ s/.fasta//;
+
+print "# --> BEGIN\n\n";
 
 # Output log file
 open (my $log, '>', "log_" . $file_name . ".txt") or die "$!";
 
-# reformat the headers, written specifically for flu
-my $outfile_name = $file_name . "-hformat.fasta";
-open(my $out_handle, ">", $outfile_name)
-    or die "Could not open file $outfile_name";
-
-my $infastafirst_obj = Bio::SeqIO->new(-file => $infasta, -format => "fasta");
-while (my $fasta_obj = $infastafirst_obj->next_seq){
-    my $header = $fasta_obj->desc;
-    my $sequence = $fasta_obj->seq;
+my %sequences;
+my $seqio = Bio::SeqIO->new(-file => $infasta, -format => "fasta");
+while(my$seqobj = $seqio->next_seq) {
     my $main_desc;
-    if ($header =~ /\(/ ){
+    my $desc  = $seqobj->desc;
+    #print "desc: $desc\n";
+    my $display_id  = $seqobj->display_id;
+    #print "display_id: $display_id\n";
+    my $id  = $display_id . " " . $desc;    # there's your key
+    if ($id =~ /\(/ ){
         #print "there is a parethesis in header\n";
-        $header =~/(\(.*\)\))/;
+        $id =~/(\(.*\)\))/;
         $main_desc = $1;
         $main_desc =~ s/ /_/g;
         $main_desc =~ s/\(/_/;
@@ -46,62 +40,56 @@ while (my $fasta_obj = $infastafirst_obj->next_seq){
         $main_desc =~ s/_$//;
     }else{
         #print "there is NOT a parethesis\n";
-        $main_desc = $header;
+        $main_desc = $id;
         $main_desc =~ s/ /_/g;
         $main_desc =~ s/__/_/;
         $main_desc =~ s/__/_/;
         $main_desc =~ s/^_//;
         $main_desc =~ s/_$//;
     }
-    print $out_handle ">$main_desc\n";
-    print $out_handle "$sequence\n";
+    my $seq = $seqobj->seq;                 # and there's your value
+    $sequences{$main_desc} = $seq;
 }
-# without this close feed to next while does not work
-close $out_handle;
 
-# get the average contig length
 my $total_count=0;
 my $total_length=0;
-print "outfile_name: $outfile_name\n";
-my $infasta_obj = Bio::SeqIO->new(-file => $outfile_name, -format => "fasta");
-while (my $fasta_obj = $infasta_obj->next_seq){
-    $total_count++;
-    my $length = $fasta_obj->length;
-#    print "length: $length\n";
-    $total_length = $total_length + $length;
-#    print "total_length: $total_length\n";
+
+my $size = keys %sequences;
+my $total_seq = 0;
+print "Number of sequences: $size\n";
+while (my ($key, $value) = each %sequences) {
+    $total_seq = $total_seq + length $value;
+    #    print $key, "\n";
+    #    print $value, "\n";
 }
 
-print "total_count: $total_count\n";
-print $log "Total FASTA sequences in file: $total_count\n";
-my $average_length = $total_length/$total_count;
-print "\nAverage FASTA length: $average_length\n\n";
-print $log "Average FASTA length: $average_length\n\n";
-my $minus_number=90;
-my $select_size = $average_length - $minus_number;
-#print "Removing FASTAs < $select_size\n";
-print "If sequences $minus_number less than the average of $average_length they are removed and listed below...\n";
-print $log "If sequences $minus_number less than the average of $average_length they are removed and listed below...\n";
+print "total_count: $size\n";
+print $log "Total FASTA sequences in file: $size\n";
 
-# if fasta less than select size remove from anlaysis
-$infasta_obj = Bio::SeqIO->new(-file => $outfile_name, -format => "fasta");
-my $select_file = "$file_name" . "_selected.fasta";
-my $seqout_obj = Bio::SeqIO->new(-file => ">$select_file", -fomat => 'fasta');
-while ( my $seq_obj = $infasta_obj->next_seq ) {
-    # print the sequence
-    my $scaffold_length = $seq_obj->length;
-    my $scaffold_display_display_id = $seq_obj->display_id;
-#    print "scaffold_length: $scaffold_length\n";
-#    print "display_id: $scaffold_display_display_id\n";
-    if ( $scaffold_length > $select_size ) {
-        $seqout_obj->write_seq($seq_obj);
+print "$total_seq\n";
+my $average_size = $total_seq / $size;
+print "average size: $average_size\n";
+print $log "Average FASTA length: $average_size\n\n";
+
+my $minus_number=90;
+my $select_size = $average_size - $minus_number;
+
+print "If sequences $minus_number less than the average of $average_size they are removed and listed below...\n";
+print $log "If sequences $minus_number less than the average of $average_size they are removed and listed below...\n";
+
+open (my $out_file, '>', "$file_name" . "_selected.fasta") or die "$!";
+
+while (my ($key, $value) = each %sequences) {
+    my $value_length = length $value;
+    if ( $value_length > $select_size ) {
+        print $out_file ">$key\n$value\n";
     }else{
-        print "### CAUTION $scaffold_length bases < threshold of $select_size bases. REMOVED --> $scaffold_display_display_id\n\n";
-        print $log "### CAUTION $scaffold_length bases < threshold of $select_size bases. REMOVED --> $scaffold_display_display_id\n\n";
+        print "### CAUTION $value_length bases < threshold of $select_size bases. REMOVED --> $key\n\n";
+        print $log "### CAUTION $value_length bases < threshold of $select_size bases. REMOVED --> $key\n\n";
     }
 }
 
-$seqout_obj->close();
+$out_file->close();
 
 ###
 # T-Coffee to align sequences
