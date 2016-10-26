@@ -3,7 +3,71 @@
 starttime=$(date +%s)
 alias pause='read -p "$LINENO Enter"'
 
-if [[ -e *fastq ]]; then
+# unzip a single FASTQ if needed
+if [[ -e $(ls *fastq | head -1) ]]; then
+    in_fastq=`ls *fastq | head -1`
+elif [[ -e $(ls *gz | head -1) ]]; then
+    pigz -d $(ls *gz | head -1)
+    in_fastq=`ls *fastq | head -1`
+else
+    printf "### ERROR no FASTQs available\n\n"
+    exit 1
+fi
+
+####################### 
+# perl script to choose optimal kmer
+cat >./get_size.pl <<'EOL'
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Bio::SeqIO;
+
+# Output kmer file
+open (my $outkmer, '>', "kmer.txt") or die "$!";
+
+my $infile = $ARGV[0];
+my $ave_length;
+
+my $inseq;
+my $frag_size_total=0;
+my $counter=0;
+$inseq = Bio::SeqIO->new(-file => $infile, -format => "fastq");
+while ((my $seq_obj = $inseq->next_seq) && ($counter <= 100)) {
+    $counter++;
+    my $length = $seq_obj->length;
+    $frag_size_total = $frag_size_total + $length;
+}
+$ave_length = $frag_size_total / 100;
+print "$ave_length\n";
+
+my $kmer = 0;
+if ($ave_length > 130) {
+    $kmer = 127
+} else {
+    $ave_length=(int $ave_length);
+    if ($ave_length % 2 == 0) {
+        print "average is even number\n";
+        $kmer = $ave_length - 7;
+    }  else {
+        print "average is odd number\n";
+        $kmer = $ave_length - 8;
+    }
+}
+
+print $outkmer "kmer: $kmer";
+EOL
+
+chmod 755 ./get_size.pl
+#######################
+./get_size.pl ${in_fastq}
+kmer=`awk '{print $2}' kmer.txt`
+rm get_size.pl kmer.txt
+printf "kmer used: $kmer\n"
+
+# zip file if needed
+if [[ -e $(ls *fastq | head -1) ]]; then
     pigz *fastq
 fi
 
@@ -28,9 +92,10 @@ mv *gz original_reads
 # Make alias in working directory to zip files
 ln -s original_reads/*gz ./
 
-strain=$(echo *fastq* | head -1 | sed 's/_.*//' | sed 's/\..*//')
+# get sample name
+strain=$(echo *fastq* | head -1 | sed 's/\..*//')
 
-pause
+# trim reads
 echo "Trimming reads"
 if [ $filecount -eq 2 ]; then 
     read1=$(ls *gz | head -1)
@@ -41,10 +106,7 @@ if [ $filecount -eq 2 ]; then
     read2=`ls | grep _R2`
     echo "Reverse Reads to be trimmed:: $read2"
     
-    #Trim the reads with bbmap tool kit (bbduk plugin)
-    #about twice as fast as trimmomatic
-
-    echo -e "Quality trimming sample "$strain""
+    echo "Quality trimming sample $strain"
 
     bbduk.sh -Xmx80g \
     in1="$read1" \
@@ -60,17 +122,14 @@ if [ $filecount -eq 2 ]; then
     threads=auto \
     showspeed=f
     
-    rm "$read1"
-    rm "$read2"
+    rm ${read1} ${read2} 
     
-    read1=`ls | grep _R1`
+read1=`ls | grep _R1`
     echo "Forward Reads to be used after trimmed: $read1"
     read2=`ls | grep _R2`
     echo "Reverse Reads to be used after trimmed:: $read2"
 
 elif [ $filecount -eq 1 ]; then
-    #Trim the reads with bbmap tool kit (bbduk plugin)
-    #about twice as fast as trimmomatic
 
     printf "Quality trimming sample $strain\n"
     read1=`ls *fastq*`
@@ -91,21 +150,23 @@ elif [ $filecount -eq 1 ]; then
     showspeed=f &>> trimming_stats.txt
 
     rm $read1
-    read1=`ls | grep _R1`
+    read1=${strain}_Trimmed.fastq.gz
     echo "Forward Reads to be used after trimmed: $read1"
 fi
-pause
 
 # assemble trimmed reads
 printf "SPAdes running...\n"
 if [[ $readtype == paired ]]; then
     spades.py -k ${kmer} --careful -1 ${read1} -2 ${read2} -o spades_output &> /dev/null
     file="./spades_output/scaffolds.fasta"
+    rm ${read1} ${read2}
 else
     spades.py -k ${kmer} -s ${read1} -o spades_output &> /dev/null
     file="./spades_output/scaffolds.fasta"
+    rm ${read1}
 fi
 
+# error if scaffolds.fasta not made
 if [[ ! -s $file ]]; then
     printf "*** error\n*** error\n*** error\n"
     printf "A proper assembled file did not complete\n"
@@ -113,9 +174,15 @@ if [[ ! -s $file ]]; then
     exit 1
 fi
 
+# save needed files
+cp spades_output/scaffolds.fasta ${strain}.scaffolds.fasta
+cp spades_output/params.txt ./
+cp spades_output/spades.log ./
+cp spades_output/warnings.log ./
+rm -r spades_output/
+
 endtime=`date +%s`
 runtime=$((endtime-starttime))
-#totaltime=`date -u -d @${runtime} +"%T"`
-printf 'Runtime: %dh:%dm:%ds\n' $(($runtime/3600)) $(($runtime%3600/60)) $(($runtime%60)) >> sectiontime
-print "***DONE\n"
+printf 'Runtime: %dh:%dm:%ds\n' $(($runtime/3600)) $(($runtime%3600/60)) $(($runtime%60))
+printf "***DONE\n"
 # created 2015-10-26, Tod Stuber
