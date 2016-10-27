@@ -98,14 +98,12 @@ strain=$(echo *fastq* | head -1 | sed 's/\..*//')
 # trim reads
 echo "Trimming reads"
 if [ $filecount -eq 2 ]; then 
+
     read1=$(ls *gz | head -1)
     read2=$(ls *gz | tail -1)
-
-    read1=`ls | grep _R1`
     echo "Forward Reads to be trimmed: $read1"
-    read2=`ls | grep _R2`
-    echo "Reverse Reads to be trimmed:: $read2"
-    
+    echo "Reverse Reads to be trimmed: $read2"
+
     echo "Quality trimming sample $strain"
 
     bbduk.sh -Xmx80g \
