@@ -9,7 +9,7 @@ help () {
     printf "\n\n"
     printf "### ncorrect argument! Provide first argument: jhu_flu, std, host\n\n"
     printf "### Example: [prompt]$ idkraken.sh jhu_flu <usda email address>\n\n"
-    printf '### email address or shorthand: "tod" "jess"\n'
+    printf '### email address or shorthand: "tod" "jess" or "na"\n'
     printf "### jhu_flu -- flu optimized, individual segment identification\n"
     printf "### std -- Kraken's standard bacteria and virus database\n"
     printf "### host -- Includes human, horse, cow, pig, chicken, babesia, bacteria and virus genomes\n"
@@ -32,6 +32,8 @@ if [[ $2 == tod ]]; then
     email="tod.p.stuber@usda.gov"
 elif [[ $2 == jess ]]; then
     email="Jessica.A.Hicks@aphis.usda.gov"
+elif [[ $2 == na ]]; then
+    printf "No email being sent\n"
 elif [[ -n $2 ]]; then
     email="$2"
 else
@@ -113,6 +115,14 @@ fi
 
 # save needed files
 
+
+# send email
+if [[ $2 == na ]]; then
+    printf "No email is being sent\n"
+else
+    printf "Sent email to $2\n"
+    echo "idkraken.sh $1 has completed" | mutt -s "Sameple: $sampleName" -a $sampleName-*.html -- ${email}
+fi
 
 endtime=`date +%s`
 runtime=$((endtime-starttime))
