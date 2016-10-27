@@ -120,9 +120,11 @@ if [ $filecount -eq 2 ]; then
 echo "***Making sam file from paired reads"
     #adding -B 8 will require reads to have few mismatches to align to reference.  -B 1 will allow more mismatch per read.
     bwa mem -M -B 8 -t 16 -R @RG"\t"ID:"$strain""\t"PL:ILLUMINA"\t"PU:"$strain"_RG1_UNIT1"\t"LB:"$strain"_LIB1"\t"SM:"$strain" $ref ${read1} ${read2} > $strain.sam
+    rm ${read1} ${read2}
 elif [ $filecount -eq 1 ]; then
     echo "***Making sam file from single read"
     bwa mem -M -B 1 -t 10 -T 20 -P -a -R @RG"\t"ID:"$strain""\t"PL:ILLUMINA"\t"PU:"$strain"_RG1_UNIT1"\t"LB:"$strain"_LIB1"\t"SM:"$strain" $ref ${read1} > $strain.sam
+    rm ${read1}
 fi
 
 samtools view -bh -T $ref $strain.sam > $strain.all.bam
@@ -148,17 +150,22 @@ bamtools coverage -in ${strain}.sorted.bam | awk -v x=${strain} 'BEGIN{OFS="\t"}
 
 #Mean depth of coverage
 meancov=`awk '{ sum += $3 } END { if (NR > 0) print sum / NR }' ${strain}-coveragefile`
-printf "\nMean Coverage: $meancov\n\n"
 
 java -Xmx4g -jar ${gatk} -R $ref -T UnifiedGenotyper -I $strain.sorted.bam -o ${strain}.UG.vcf -nct 8
 
-# make reference guided contig
-java -jar ${gatk} -T FastaAlternateReferenceMaker -R $ref -o ${strain}.readreference.fasta -V ${strain}.UG.vcf
-
 echo '##fileformat=VCFv4.1' > $strain-highqualitysnps.vcf
 echo '#CHROM  POS     ID      REF     ALT     QUAL    FILTER  INFO    FORMAT  SAMPLE1 rsIDs' | awk 'BEGIN{OFS="\t"}{print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11}' >> $strain-highqualitysnps.vcf
-grep -v '^#' $1 | awk 'BEGIN{OFS="\t"} $6 > 500 {print $1, $2, ".", $4, ".",  ".", ".", ".", ".", ".", "."}' >> $strain-highqualitysnps.vcf
+grep -v '^#' ${strain}.UG.vcf | awk 'BEGIN{OFS="\t"} $6 > 500 {print $1, $2, ".", $4, ".",  ".", ".", ".", ".", ".", "."}' >> $strain-highqualitysnps.vcf
 
+# file clean up
+rm ${strain}.all.bam
+rm ${strain}.dedupmappedReads.sam
+rm ${strain}.dup.bam*
+rm ${strain}.FilteredReads.xls
+rm ${strain}.raw.bam
+rm ${strain}.mappedReads.sam
+
+printf "\nMean Coverage: $meancov\n\n"
 endtime=`date +%s`
 runtime=$((endtime-starttime))
 printf 'Runtime: %dh:%dm:%ds\n' $(($runtime/3600)) $(($runtime%3600/60)) $(($runtime%60))
