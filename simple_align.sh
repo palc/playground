@@ -164,6 +164,7 @@ rm ${strain}.dup.bam*
 rm ${strain}.FilteredReads.xls
 rm ${strain}.raw.bam
 rm ${strain}.mappedReads.sam
+pigz *dedup-filtered*.fastq
 
 printf "\nMean Coverage: $meancov\n\n"
 endtime=`date +%s`
