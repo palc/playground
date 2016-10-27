@@ -7,17 +7,17 @@ NR_CPUS=40
 
 help () {
     printf "\n\n"
-    printf "### ncorrect argument! Provide first argument: jhu_flu, std, host\n\n"
-    printf "### Example: [prompt]$ idkraken.sh jhu_flu <usda email address>\n\n"
+    printf "### ncorrect argument! Provide first argument: flu, std, host\n\n"
+    printf "### Example: [prompt]$ idkraken.sh flu <usda email address>\n\n"
     printf '### email address or shorthand: "tod" "jess" or "na"\n'
-    printf "### jhu_flu -- flu optimized, individual segment identification\n"
+    printf "### flu -- flu optimized, individual segment identification\n"
     printf "### std -- Kraken's standard bacteria and virus database\n"
     printf "### host -- Includes human, horse, cow, pig, chicken, babesia, bacteria and virus genomes\n"
     exit 1
 }
 
 # check arg1 for database type
-if [[ $1 == jhu_flu ]]; then
+if [[ $1 == flu ]]; then
     krakenDatabase="/home/shared/databases/kraken/flu_jhu/fludb_20150820_with_hosts"
 elif [[ $1 == std ]]; then
     krakenDatabase="/home/shared/databases/kraken/std/"
@@ -66,13 +66,14 @@ cp *gz original_reads
 # Make alias in working directory to zip files
 
 # Kraken requires unzip FASTQs
-pigz -d *fastq
+pigz -d *gz
 
 # get sample name
-strain=$(echo *fastq* | head -1 | sed 's/\..*//')
-echo "Quality trimming sample $strain"
+strain=$(echo *fastq | head -1 | sed 's/[._].*//')
+printf "Strain name $strain\n\n"
 
 # Kraken
+printf "\n"
 date
 printf "Kraken running...\n\n"
 if [ $filecount -eq 2 ]; then 
@@ -100,28 +101,29 @@ fi
 date
 printf "*** Krona transforming Kraken output to graph\n"
 
-if [[ $1 == jhu_flu ]]; then
+if [[ $1 == flu ]]; then
     printf "------> Building Krona Graph... using JHU kraken2krona.sh\n"
     date
-    kraken2krona.sh -i $sampleName-kraken-output.txt -k ${krakenDatabase} -o $sampleName-jhu-output.txt -r $sampleName-jhu-Krona_id_graphic.html
+    kraken2krona.sh -i $strain-outputkraken.txt -k ${krakenDatabase} -o $strain-jhu-output.txt -r $strain-jhu-Krona_id_graphic.html
 else
     printf "------> Building Krona Graph... using standard taxonomy\n"
-    cut -f2,3 $sampleName-kraken-output.txt > $sampleName-kronaInput.txt
+    cut -f2,3 $strain-outputkraken.txt > $strain-kronaInput.txt
     # removed -a
-    ktImportTaxonomy $sampleName-kronaInput.txt
-    mv taxonomy.krona.html $sampleName-taxonomy.krona.html
-    mv taxonomy.krona.html.files $sampleName-taxonomy.krona.html.files
+    ktImportTaxonomy $strain-kronaInput.txt
+    mv taxonomy.krona.html $strain-taxonomy.krona.html
+    mv taxonomy.krona.html.files $strain-taxonomy.krona.html.files
 fi
 
 # save needed files
-
+rm -r *taxonomy.krona.html.files
+rm *-kronaInput.txt
 
 # send email
 if [[ $2 == na ]]; then
     printf "No email is being sent\n"
 else
     printf "Sent email to $2\n"
-    echo "idkraken.sh $1 has completed" | mutt -s "Sameple: $sampleName" -a $sampleName-*.html -- ${email}
+    echo "idkraken.sh $1 has completed" | mutt -s "Sameple: $strain" -a ${strain}-*.html -- ${email}
 fi
 
 endtime=`date +%s`

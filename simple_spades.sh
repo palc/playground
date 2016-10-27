@@ -93,7 +93,7 @@ mv *gz original_reads
 ln -s original_reads/*gz ./
 
 # get sample name
-strain=$(echo *fastq* | head -1 | sed 's/\..*//')
+strain=$(echo *fastq* | head -1 | sed 's/[._].*//')
 
 # trim reads
 echo "Trimming reads"
