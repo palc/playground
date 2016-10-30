@@ -12,6 +12,15 @@ help () {
     exit 1
 }
 
+picard=`which picard.jar`
+if [[ -z $picard ]]; then
+	echo "picard.jar not in PATH"
+	echo "picard version >1.14"
+	echo "Add picard.jar to PATH"
+	echo "See line: $LINENO"
+	exit 1
+fi
+
 # zip FASTQs
 if [[ -e $(ls *fastq | head -1) ]]; then
     pigz *fastq
