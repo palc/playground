@@ -63,47 +63,56 @@ foreach my $line (@lines) {
 # count the number each accession occures, put into hash
 my %id_count;
 my %acc_counts;
+my $lenght_of_contig;
 $acc_counts{$_}++ for @accessions;
 # for each key in hash
 while (my ($key, $value) = each %acc_counts) {
     my $isolate_name;
     # iterate through lines to get isolate name matching accession
+    my $count_total_length=0;
     foreach my $line (@lines) {
-        my @tab = split(/\t/, $line);
+        my @tab = split(/\t/, $line);    
         if ($key eq $tab[-2]){
             # right to variable, when for multi times will just overwrite
             $isolate_name = $tab[-3];
-        }
-    }
-    # value is the number accession was counted in BLAST output
-    # put isolate id and count value into hash for sorting below
-    $id_count{$isolate_name} = $value;
-}
-
-while (my ($key, $value) = each %acc_counts) {
-    my $count_total_length=0;
-    my $lenght_of_contig;
-    # iterate through lines to get isolate name matching accession
-    foreach my $line (@lines) {
-        my @tab = split(/\t/, $line);
-        if ($key eq $tab[-2]){
-            # right to variable, when for multi times will just overwrite
+            # get the total bases identified with uniq accession
+            # only works with spades output with length in header
             ($lenght_of_contig = $tab[-1]) =~ s/.*_length_(.*)_cov.*/$1/;
             print "lenght_of_contig: $lenght_of_contig\n";
-            $count_total_length = $count_total_length + $lenght_of_contig; 
+            $count_total_length = $count_total_length + $lenght_of_contig;
             print "count_total_length: $count_total_length\n";
         }
     }
     # value is the number accession was counted in BLAST output
     # put isolate id and count value into hash for sorting below
+    $count_total_length =~ s/(?<=\d)(?=(?:\d\d\d)+\b)/,/g;
+    $id_count{"$isolate_name" . "_" . "$count_total_length"} = $value;
 }
+
+#while (my ($key, $value) = each %acc_counts) {
+#    my $count_total_length=0;
+#    my $lenght_of_contig;
+#    # iterate through lines to get isolate name matching accession
+#    foreach my $line (@lines) {
+#        my @tab = split(/\t/, $line);
+#        if ($key eq $tab[-2]){
+#            # right to variable, when for multi times will just overwrite
+#            ($lenght_of_contig = $tab[-1]) =~ s/.*_length_(.*)_cov.*/$1/;
+#            print "lenght_of_contig: $lenght_of_contig\n";
+#            $count_total_length = $count_total_length + $lenght_of_contig; 
+#            print "count_total_length: $count_total_length\n";
+#        }
+#    }
+#    # value is the number accession was counted in BLAST output
+#    # put isolate id and count value into hash for sorting below
+#}
 
 # output sort
 # sorted on count number with id information
 # reverse with: {$id_count{$b} <=> $id_count{$a}}
-#foreach my $name (sort {$id_count{$a} <=> $id_count{$b}} keys %id_count) {
-#    print "$id_count{$name} --> $name\n";
-#}
+foreach my $name (sort {$id_count{$a} <=> $id_count{$b}} keys %id_count) {
+    print "$id_count{$name} --> $name\n";
+}
 
 # check that blast out elements == in reads, ie number of expected ids output
 my $array_size = scalar @lines;
