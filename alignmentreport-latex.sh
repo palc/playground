@@ -127,6 +127,7 @@ forReads=`ls | grep _R1`
 echo "Forward Reads:  $forReads"
 if [ -z $forReads ]; then
 	echo "No forward read in working directory.  Required format: samplename*_R1*.fastq.gz"
+    exit 1
 fi
 
 sampleName=`echo $forReads | sed 's/[._].*//'`
@@ -250,7 +251,7 @@ fi
 #F4 just keeps the mapped reads in the bam file
 samtools view -bh -F4 -T $ref ${sampleName}.sam > ${sampleName}.mapped.bam
 echo "Sorting Bam"
-samtools sort ${sampleName}.mapped.bam ${sampleName}.mapped.sorted
+samtools sort ${sampleName}.mapped.bam -o ${sampleName}.mapped.sorted.bam
 echo "****Indexing Bam"
 samtools index ${sampleName}.mapped.sorted.bam
 
