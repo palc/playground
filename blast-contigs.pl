@@ -28,8 +28,8 @@ while (my $seq_obj = $inseq->next_seq) {
     $counter++;
     my $length = $seq_obj->length;
     $frag_size_total = $frag_size_total + $length;
-    if ( $length > 400 ){
-        my $subsequence=$seq_obj->trunc(50,350);
+    if ( $length > 2000 ){
+        my $subsequence=$seq_obj->trunc(50,1950);
         $outseq->write_seq($subsequence);
     }else{
         $outseq->write_seq($seq_obj);
@@ -45,6 +45,10 @@ my $outblast = "$file_name" . "_id.txt";
 my $outblast_uniq = "$file_name" . "_id_uniq.txt";
 # word_size needs to be set to 11 to return hits for all contigs
 `blastn -query $inblast -db /data/BLAST/db/nt -word_size 11 -num_threads 40 -out $outblast -max_target_seqs 1 -outfmt "6 $blast_order"`;
+
+# BLAST full contig length
+#`blastn -query $file -db /data/BLAST/db/nt -word_size 11 -num_threads 40 -out $outblast -max_target_seqs 1 -outfmt "6 $blast_order"`;
+
 # know bug in -max_target_seqs.  Parameter used within blastn algorithm causing multiple hits to sometimes be returned
 `awk -F'\t' '!seen[\$9]++' $outblast > $outblast_uniq`;
 
