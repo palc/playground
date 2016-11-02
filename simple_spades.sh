@@ -43,16 +43,30 @@ $ave_length = $frag_size_total / 100;
 print "$ave_length\n";
 
 my $kmer = 0;
+my $mer1;
+my $mer2;
+my $mer3;
+my $mer4;
+
 if ($ave_length > 130) {
     $kmer = 127
 } else {
     $ave_length=(int $ave_length);
     if ($ave_length % 2 == 0) {
         print "average is even number\n";
-        $kmer = $ave_length - 7;
+        $mer1 = $ave_length - 1;
+        $mer2 = $ave_length - 3;
+        $mer3 = $ave_length - 5;
+        $mer4 = $ave_length - 7;
+        $kmer = "21,33,55,77," . "$mer4" . "," . "$mer3" . "," . "$mer2" . "," . "$mer1";
     }  else {
         print "average is odd number\n";
-        $kmer = $ave_length - 8;
+        $mer1 = $ave_length;
+        $mer2 = $ave_length - 2;
+        $mer3 = $ave_length - 4;
+        $mer4 = $ave_length - 6;
+        $kmer = "21,33,55,77," . "$mer4" . "," . "$mer3" . "," . "$mer2" . "," . "$mer1";
+
     }
 }
 
@@ -126,8 +140,8 @@ if [ $filecount -eq 2 ]; then
     echo "Forward Reads to be used after trimmed: $read1"
     ls -lh $read1
     read2=`ls | grep _R2`
-    ls -lh $read2
     echo "Reverse Reads to be used after trimmed:: $read2"
+    ls -lh $read2
 
 elif [ $filecount -eq 1 ]; then
 
