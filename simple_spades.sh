@@ -122,9 +122,11 @@ if [ $filecount -eq 2 ]; then
     
     rm ${read1} ${read2} 
     
-read1=`ls | grep _R1`
+    read1=`ls | grep _R1`
     echo "Forward Reads to be used after trimmed: $read1"
+    ls -lh $read1
     read2=`ls | grep _R2`
+    ls -lh $read2
     echo "Reverse Reads to be used after trimmed:: $read2"
 
 elif [ $filecount -eq 1 ]; then
@@ -150,10 +152,11 @@ elif [ $filecount -eq 1 ]; then
     rm $read1
     read1=${strain}_Trimmed.fastq.gz
     echo "Forward Reads to be used after trimmed: $read1"
+    ls -lh $read1
 fi
 
 # assemble trimmed reads
-printf "SPAdes running...\n"
+printf "\nSPAdes running...\n"
 printf "kmer: ${kmer}\n"
 if [[ $readtype == paired ]]; then
     spades.py -k ${kmer} --careful -1 ${read1} -2 ${read2} -o spades_output &> /dev/null
