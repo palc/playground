@@ -154,6 +154,7 @@ fi
 
 # assemble trimmed reads
 printf "SPAdes running...\n"
+printf "kmer: ${kmer}\n"
 if [[ $readtype == paired ]]; then
     spades.py -k ${kmer} --careful -1 ${read1} -2 ${read2} -o spades_output &> /dev/null
     file="./spades_output/scaffolds.fasta"
