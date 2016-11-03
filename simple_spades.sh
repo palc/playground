@@ -198,7 +198,7 @@ cp spades_output/warnings.log ./
 rm -r spades_output/
 
 assemblathon_reformat_stats.sh ${strain}.scaffolds.fasta
-rm ${strain}--assemblathon_stats.txt
+rm ${strain}-assemblathon_stats.txt
 
 endtime=`date +%s`
 runtime=$((endtime-starttime))
