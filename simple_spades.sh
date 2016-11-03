@@ -49,7 +49,7 @@ my $mer3;
 my $mer4;
 
 if ($ave_length > 130) {
-    $kmer = 127
+    $kmer = "21,33,55,77,99,127"
 } else {
     $ave_length=(int $ave_length);
     if ($ave_length % 2 == 0) {
@@ -196,6 +196,9 @@ cp spades_output/params.txt ./
 cp spades_output/spades.log ./
 cp spades_output/warnings.log ./
 rm -r spades_output/
+
+assemblathon_reformat_stats.sh ${strain}.scaffolds.fasta
+rm ${strain}--assemblathon_stats.txt
 
 endtime=`date +%s`
 runtime=$((endtime-starttime))
