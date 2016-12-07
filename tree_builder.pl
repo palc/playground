@@ -52,9 +52,13 @@ while(my$seqobj = $seqio->next_seq) {
         $main_desc =~ s/^_//;
         $main_desc =~ s/_$//;
     }
+    print "$main_desc";
     my $seq = $seqobj->seq;                 # and there's your value
     $sequences{$main_desc} = $seq;
 }
+
+print "Press Enter";
+<>;
 
 # Get average FASTA length
 my $total_count=0;
