@@ -31,12 +31,12 @@ while (my $seq_obj = $inseq->next_seq) {
     $counter++;
     my $length = $seq_obj->length;
     $frag_size_total = $frag_size_total + $length;
-    if ( $length > 2000 ){
-        my $subsequence=$seq_obj->trunc(50,1950);
+    if ( $length > 199 ){
+        my $subsequence=$seq_obj->trunc(5,$length-5);
         $outseq->write_seq($subsequence);
-    }else{
-        $outseq->write_seq($seq_obj);
-    }
+    } #else{
+        #$outseq->write_seq($seq_obj);
+   # }
 }
 
 print "\n$counter contigs\n";

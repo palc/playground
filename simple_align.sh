@@ -128,7 +128,7 @@ bwa index $ref
 if [ $filecount -eq 2 ]; then
 echo "***Making sam file from paired reads"
     #adding -B 8 will require reads to have few mismatches to align to reference.  -B 1 will allow more mismatch per read.
-    bwa mem -M -B 8 -t 16 -R @RG"\t"ID:"$strain""\t"PL:ILLUMINA"\t"PU:"$strain"_RG1_UNIT1"\t"LB:"$strain"_LIB1"\t"SM:"$strain" $ref ${read1} ${read2} > $strain.sam
+    bwa mem -M -B 1 -t 16 -R @RG"\t"ID:"$strain""\t"PL:ILLUMINA"\t"PU:"$strain"_RG1_UNIT1"\t"LB:"$strain"_LIB1"\t"SM:"$strain" $ref ${read1} ${read2} > $strain.sam
     rm ${read1} ${read2}
 elif [ $filecount -eq 1 ]; then
     echo "***Making sam file from single read"

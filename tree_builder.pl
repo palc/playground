@@ -25,10 +25,12 @@ my $seqio = Bio::SeqIO->new(-file => $infasta, -format => "fasta");
 while(my$seqobj = $seqio->next_seq) {
     my $main_desc;
     my $desc  = $seqobj->desc;
+    my $header_name;
     #print "desc: $desc\n";
     my $display_id  = $seqobj->display_id;
     #print "display_id: $display_id\n";
     my $id  = $display_id . " " . $desc;    # there's your key
+    $display_id =~ s/_.*//;
     if ($id =~ /\(/ ){
         #print "there is a parethesis in header\n";
         $id =~/(\(.*\)\))/;
@@ -52,13 +54,10 @@ while(my$seqobj = $seqio->next_seq) {
         $main_desc =~ s/^_//;
         $main_desc =~ s/_$//;
     }
-    print "$main_desc";
     my $seq = $seqobj->seq;                 # and there's your value
-    $sequences{$main_desc} = $seq;
+    $header_name = $display_id . "_" . $main_desc;
+    $sequences{$header_name} = $seq;
 }
-
-print "Press Enter";
-<>;
 
 # Get average FASTA length
 my $total_count=0;
