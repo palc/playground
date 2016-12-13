@@ -228,8 +228,17 @@ print "tree file: $tree_file\n";
 print "out_alignment_file: $out_alignment_file\n";
 
 # run aligned, trimmed "-" gapped ends FASTAs in RAxML
+# -f a --> conduct a rapid Bootstrap analysis and search for the best-scoring ML tree in one single program run
+# -s --> input file
+# -p --> random number seed for the parsimony inferences, allows one to reproduce your results
+# -x --> integer number (random seed) and turn on rapid bootstrapping, used in place of -b
+# -m --> model, GTR: Generalised time-reversible
+# -n --> out file
+# bootstrap with --> -b 123476 -N 100 (using -f a option... much faster)
+#   -b --> random seed
+#   -N --> number of alternative runs on distinct starting trees
 print "RAxML running...\n";
-`raxmlHPC-SSE3 -f a -s $out_alignment_file -p 12345 -x 12345 -# 100 -m GTRCAT -n $tree_file`;
+`raxmlHPC-PTHREADS-AVX2 -s $out_alignment_file -f a -x 12345 -T 50 -p 12345 -N 100 -m GTRCAT -n $tree_file`;
 
 # remove unneeded files
 `rm *dnd *reduced RAxML_bootstrap* RAxML_info* RAxML_bipartitions*`;
