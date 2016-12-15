@@ -26,9 +26,9 @@ while(my$seqobj = $seqio->next_seq) {
     my $main_desc;
     my $desc  = $seqobj->desc;
     my $header_name;
-    #print "desc: $desc\n";
+    print "desc: $desc\n";
     my $display_id  = $seqobj->display_id;
-    #print "display_id: $display_id\n";
+    print "display_id: $display_id\n";
     my $id  = $display_id . " " . $desc;    # there's your key
     $display_id =~ s/_.*//;
     if ($id =~ /\(/ ){
@@ -45,7 +45,8 @@ while(my$seqobj = $seqio->next_seq) {
         $main_desc =~ s/__/_/;
         $main_desc =~ s/^_//;
         $main_desc =~ s/_$//;
-    }else{
+        #print "$main_desc\n";    
+}else{
         #print "there is NOT a parethesis\n";
         $main_desc = $id;
         $main_desc =~ s/ /_/g;
@@ -53,6 +54,7 @@ while(my$seqobj = $seqio->next_seq) {
         $main_desc =~ s/__/_/;
         $main_desc =~ s/^_//;
         $main_desc =~ s/_$//;
+        #print "$main_desc\n";
     }
     my $seq = $seqobj->seq;                 # and there's your value
     $header_name = $display_id . "_" . $main_desc;
