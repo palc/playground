@@ -33,19 +33,20 @@ sed -e 's/$/=/g' ${n}-contigs.fa | tr -d "\n" | tr "=" "\n" | grep -v "^$" | awk
 echo "##### Blasting contig file #####"
 echo "Start Time: `date`"
 
+# removed "-word_size 11", didn't help in this case.  Caused more identification/contig
 echo "short BLAST"
 blastn -query ${n}-contigs3.fa -db /data/BLAST/db/nt -num_threads 20 -out ${n}-consensus-max1-nt.txt -max_target_seqs 1 -outfmt "6 saccver stitle"
 
 awk 'BEGIN{OFS="\t"}{k=$1; a[k]++; b[k]=$0}; END{for (k in a) print a[k], b[k]}' ${n}-consensus-max1-nt.txt | sort -rnk1,1 > $n.pre.tex
 
 echo "" >> ${mystart}/${n}.tex
-echo "\begin{tabular}{ l | l | p{13cm} }" >> ${mystart}/${n}.tex
+echo "\begin{longtable}{ l | l | p{13cm} }" >> ${mystart}/${n}.tex
 echo "\hline" >> ${mystart}/${n}.tex
 echo "n & accession & identification \\\\" >> ${mystart}/${n}.tex
 echo "\hline" >> ${mystart}/${n}.tex
 tr "\t" "&" < $n.pre.tex | sed 's/&/ & /g' | sed 's:$: \\\\:' | sed 's/_/\\_/g' >> ${mystart}/${n}.tex
 echo "\hline" >> ${mystart}/${n}.tex
-echo "\end{tabular}" >> ${mystart}/${n}.tex
+echo "\end{longtable}" >> ${mystart}/${n}.tex
 echo "\end{document}" >> ${mystart}/${n}.tex
 
 
@@ -80,6 +81,7 @@ cat << EOL > ${mystart}/${n}.tex
 \usepackage[margin=0.5in]{geometry}
 \usepackage{graphicx}
 \usepackage[table]{xcolor}
+\usepackage{longtable}
 
 \renewcommand{\thepage}{Appendix --  page \arabic{page}}
 

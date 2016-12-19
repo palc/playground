@@ -31,7 +31,7 @@ while (my $seq_obj = $inseq->next_seq) {
     $counter++;
     my $length = $seq_obj->length;
     $frag_size_total = $frag_size_total + $length;
-    if ( $length > 199 ){
+    if ( $length > 9 ){
         my $subsequence=$seq_obj->trunc(5,$length-5);
         $outseq->write_seq($subsequence);
     } #else{
@@ -86,9 +86,9 @@ while (my ($key, $value) = each %acc_counts) {
             # get the total bases identified with uniq accession
             # only works with spades output with length in header
             ($length_of_contig = $tab[-1]) =~ s/.*_length_(.*)_cov.*/$1/;
-            print "length_of_contig: $length_of_contig\n";
+            #print "length_of_contig: $length_of_contig\n";
             $count_total_length = $count_total_length + $length_of_contig;
-            print "count_total_length: $count_total_length\n";
+            #print "count_total_length: $count_total_length\n";
         }
     }
     # value is the number accession was counted in BLAST output
@@ -134,11 +134,11 @@ if ( $counter == $array_size ){
         print $summary "\n### WARNING read input: $counter uniq BLAST output: $array_size\n\n";
     }
 
-print "\n$counter contigs\n";
-print "Total bases: $frag_size_total\n\n";
+#print "\n$counter contigs\n";
+#print "Total bases: $frag_size_total\n\n";
 
-print $summary "\n$counter contigs\n";
-print $summary "Total bases: $frag_size_total\n\n";
+#print $summary "\n$counter contigs\n";
+#print $summary "Total bases: $frag_size_total\n\n";
 
-print "\nDONE\n\n";
+#print "\nDONE\n\n";
 # 2016-10-27 stuber
