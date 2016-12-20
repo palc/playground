@@ -36,7 +36,7 @@ echo "Start Time: `date`"
 
 # removed "-word_size 11", didn't help in this case.  Caused more identification/contig
 echo "short BLAST"
-blastn -query ${n}-contigs3.fa -db /data/BLAST/db/nt -num_threads 20 -out ${n}-consensus-max1-nt.txt -max_target_seqs 1 -outfmt "6 saccver stitle"
+blastn -query ${n}-contigs3.fa -db /data/BLAST/db/nt -num_threads 40 -out ${n}-consensus-max1-nt.txt -max_target_seqs 1 -outfmt "6 saccver stitle"
 
 awk 'BEGIN{OFS="\t"}{k=$1; a[k]++; b[k]=$0}; END{for (k in a) print a[k], b[k]}' ${n}-consensus-max1-nt.txt | sort -rnk1,1 > $n.pre.tex
 
