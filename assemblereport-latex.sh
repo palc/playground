@@ -1,7 +1,7 @@
 #!/bin/sh
 
 alias pause='read -p "$LINENO Enter"'
-
+root=`pwd`
 ######
 function blastcontig () {
 grep -v "^$" $1 > file
@@ -11,18 +11,18 @@ echo "h: $h a: $a"
 singlelinetest=`expr $a / $h`
 echo "singlelingtest: $singlelinetest"
 
-if [[ $singlelinetest == 2 ]]; then
-        echo "contig file ( $1 ) is formatted correctly"
-        cat $1 > ${n}-contigsoriginal.fa
-else
-        # If contigs going in are not all on the same line then newlines are removed to put fasta on a single line.
-        echo "contig file ( $1 ) was reformated placing sequence on a sigle line"
-        #header names are changed
-        #awk '{if ($0 ~ />/ ) {print ">"} else print $0}' $1 | tr -d "\n" | sed -e 's:>:\n>\n:g' | awk '{if ($0 ~  />/ ) {print ">contigs-" x++} else print $0}' | grep -v "^$" > ${n}-contigsoriginal.fa
-        # header are not changed
-        awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);} END {printf("\n");}' $1 | grep -v '^$' > ${n}-contigsoriginal.fa
-fi
-rm file
+#if [[ $singlelinetest == 2 ]]; then
+#        echo "contig file ( $1 ) is formatted correctly"
+#        cat $1 > ${n}-contigsoriginal.fa
+#else
+#        # If contigs going in are not all on the same line then newlines are removed to put fasta on a single line.
+#        echo "contig file ( $1 ) was reformated placing sequence on a sigle line"
+#        #header names are changed
+#        #awk '{if ($0 ~ />/ ) {print ">"} else print $0}' $1 | tr -d "\n" | sed -e 's:>:\n>\n:g' | awk '{if ($0 ~  />/ ) {print ">contigs-" x++} else print $0}' | grep -v "^$" > ${n}-contigsoriginal.fa
+#        # header are not changed
+#        awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);} END {printf("\n");}' $1 | grep -v '^$' > ${n}-contigsoriginal.fa
+#fi
+#rm file
 ###
 
 # Remove everything behond the space.  Meant for ">name otherinfo" to just ">name"
@@ -35,8 +35,12 @@ echo "##### Blasting contig file #####"
 echo "Start Time: `date`"
 
 # removed "-word_size 11", didn't help in this case.  Caused more identification/contig
-echo "short BLAST"
-blastn -query ${n}-contigs3.fa -db /data/BLAST/db/nt -num_threads 40 -out ${n}-consensus-max1-nt.txt -max_target_seqs 1 -outfmt "6 saccver stitle"
+echo "short BLAST of $1"
+ls $1
+read -p "BEFORE BLAST AT $LINENO"
+blastn -query $1 -db /data/BLAST/db/nt -word_size 11 -num_threads 40 -out ${n}-consensus-max1-nt.txt -max_target_seqs 1 -outfmt "6 saccver stitle"
+#blastn -query ${n}-contigs3.fa -db /data/BLAST/db/nt -num_threads 40 -out ${n}-consensus-max1-nt.txt -max_target_seqs 1 -outfmt "6 saccver stitle"
+read -p "AFTER BLAST AT $LINENO"
 
 awk 'BEGIN{OFS="\t"}{k=$1; a[k]++; b[k]=$0}; END{for (k in a) print a[k], b[k]}' ${n}-consensus-max1-nt.txt | sort -rnk1,1 > $n.pre.tex
 
@@ -52,7 +56,7 @@ echo "\end{document}" >> ${mystart}/${n}.tex
 
 
 rm $n.pre.tex
-rm ${n}-contigs*fa
+#rm ${n}-contigs*fa
 
 }
 
@@ -153,12 +157,15 @@ echo "" >> ${mystart}/${n}.tex
 
 #BLAST reads
 cd ../${n}_abyss-blast
-
-if [ -e ${n}_abyss-8.fasta ]; then
-        blastcontig *-8.fasta
-else
-        blastcontig *-3.fasta
-fi
+echo "blasting file: ${root}/$1"
+cp ${root}/$1 ./
+read -p "$LINENO"
+blastcontig $1
+#if [ -e ${n}_abyss-8.fasta ]; then
+#        blastcontig *-8.fasta
+#else
+#        blastcontig *-3.fasta
+#fi
 
 cd ${mystart}
 pdflatex ${mystart}/${n}.tex
