@@ -29,7 +29,8 @@ rm file
 sed 's/ .*$//' ${n}-contigsoriginal.fa > ${n}-contigs.fa
 
 # Cut down contigs and this also should put all fasta contigs onto a single line.
-sed -e 's/$/=/g' ${n}-contigs.fa | tr -d "\n" | tr "=" "\n" | grep -v "^$" | awk '{ if ($0 ~ /^>/ ) { print $0 } else if (length($O) > 600 ) {print substr($0, 50, 500) } else {print $0}}' > ${n}-contigs3.fa
+#sed -e 's/$/=/g' ${n}-contigs.fa | tr -d "\n" | tr "=" "\n" | grep -v "^$" | awk '{ if ($0 ~ /^>/ ) { print $0 } else if (length($O) > 600 ) {print substr($0, 50, 500) } else {print $0}}' > ${n}-contigs3.fa
+cat ${n}-contigs.fa > ${n}-contigs3.fa
 echo "##### Blasting contig file #####"
 echo "Start Time: `date`"
 
