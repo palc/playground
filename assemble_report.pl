@@ -6,18 +6,16 @@ use warnings;
 use File::Basename;
 use Data::Dumper qw(Dumper);
 use Cwd;
+use Bio::Seq;
+use Bio::SeqIO;
 
 # Usage:
-    # virus_segment_finder.pl < full path to fastq files >
+    # assemble_report.pl < full path to fastq files >
     # Files can be zipped or unzipped, single or paired reads
     # Paired files must be labed R1 and R2
 
 print "----- START -----\n\n";
 
-
-
-# one argument expected , which must be path to fastq files 
-#my $path = $ARGV[0];
 my $path = getcwd;
 if (not defined $path) {
     die "ERROR!!! --> Argument to directory containing FASTQ/s was not provided"
@@ -138,6 +136,16 @@ if ($read_type eq "paired") {
     `spades.py -t 32 -k 45,47,49,51,53,57,59,61,63,65,77,99,127 --mismatch-correction -s $input_zip -o ./`;
 }
 
+print "SPADES IS DONE RUNNING\n";
+
+my $file = < ${path}scaffolds.fasta >;
+if (not defined $file) {
+    die "### scaffolds file did not create\n"
+}
+
+`rm -r K45 K47 K49 K51 K53 K57 K59 K61 K63 K65 K77 K99 K127 misc mismatch_corrector tmp scaffolds.paths assembly_graph.fastg before_rr.fasta contigs.fasta contigs.paths corrected dataset.info input_dataset.yaml params.txt`;
+
+print "scaffolds file: $file";
 
 
 
@@ -163,8 +171,5 @@ if ($read_type eq "paired") {
 
 
 
-
-
-
-
+print "\n\n### DONE\n\n";
 # 2016-12-20 tstuber
