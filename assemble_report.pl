@@ -29,6 +29,7 @@ $path =~ s|/?$|/|;
 my @files = < ${path}*fastq* >;
 my $read_type;
 my $filename;
+my $samplename;
 # check if array is empty
 if (@files) {
     foreach (@files) {
@@ -36,6 +37,7 @@ if (@files) {
         my $basename = basename($_);
         $filename=$basename;
         chomp $filename;
+        ($samplename = $filename) =~ s/_.*//;
         # try to find R[1-2] from basename
         if ($basename =~ /R[1-2]{1}/g) {
             $read_type = "paired";
@@ -88,7 +90,6 @@ if ($read_type eq "paired") {
     my @input_R2_zip = < ${path}*R2*fastq.gz >;
     my @input_R1_unzip = < ${path}*R1*fastq >;
     my @input_R2_unzip = < ${path}*R2*fastq >;
-
     foreach (@input_R1_zip) {
         $input_R1_zip = $_;
         }
@@ -136,7 +137,7 @@ if ($read_type eq "paired") {
     `spades.py -t 32 -k 45,47,49,51,53,57,59,61,63,65,77,99,127 --mismatch-correction -s $input_zip -o ./`;
 }
 
-print "SPADES IS DONE RUNNING\n";
+print "SPADES IS DONE RUNNING < $samplename >\n";
 
 my $file = < ${path}scaffolds.fasta >;
 if (not defined $file) {
@@ -147,10 +148,13 @@ if (not defined $file) {
 
 print "scaffolds file: $file";
 
+# LaTeX file
+open (my $tex, '>', $samplename . ".tex") or die "$!";
+
 my $frag_size_total=0;
 my $counter=0;
 my $ave_length;
-my $inblast = "$file_name" . "_to_blast.fasta";
+my $inblast = "$samplename" . "_to_blast.fasta";
 
 my $inseq = Bio::SeqIO->new(-file => $file, -format => "fasta");
 my $outseq = Bio::SeqIO->new(-file => ">$inblast", -fomat => 'fasta');
@@ -171,8 +175,8 @@ $frag_size_total =~ s/(?<=\d)(?=(?:\d\d\d)+\b)/,/g;
 print "Total bases: $frag_size_total\n\n";
 
 my $blast_order = "qlen slen pident mismatch evalue bitscore stitle saccver qseqid";
-my $outblast = "$file_name" . "_id.txt";
-my $outblast_uniq = "$file_name" . "_id_uniq.txt";
+my $outblast = "$samplename" . "_id.txt";
+my $outblast_uniq = "$samplename" . "_id_uniq.txt";
 # word_size needs to be set to 11 to return hits for all contigs
 `blastn -query $inblast -db /data/BLAST/db/nt -word_size 11 -num_threads 40 -out $outblast -max_target_seqs 1 -outfmt "6 $blast_order"`;
 
@@ -218,15 +222,18 @@ while (my ($key, $value) = each %acc_counts) {
     # value is the number accession was counted in BLAST output
     # put isolate id and count value into hash for sorting below
     $count_total_length =~ s/(?<=\d)(?=(?:\d\d\d)+\b)/,/g;
-    $id_count{"$isolate_name" . "_" . "$count_total_length"} = $value;
+    $id_count{"$count_total_length" . " & " . "$isolate_name"} = $value;
 }
 
 # output sort
 # sorted on count number with id information
 # reverse with: {$id_count{$b} <=> $id_count{$a}}
+
+# LaTeX file
+ open (my $idtable, '>', $samplename . ".idtable") or die "$!";
 foreach my $name (sort {$id_count{$a} <=> $id_count{$b}} keys %id_count) {
     print "$id_count{$name} --> $name\n";
-    print $summary "$id_count{$name} --> $name\n";
+    print $idtable "$id_count{$name} & $name \\\\ \n";
 }
 
 # check that blast out elements == in reads, ie number of expected ids output
@@ -234,24 +241,78 @@ my $array_size = scalar @lines;
 print "The number of top hits: $counter\n";
 if ( $counter == $array_size ){
         print "\nPASS -> Records in, match records out\n\n";
-        print $summary "\nPASS -> Records in, match records out\n\n";
     }else{
         print "\n### WARNING read input: $counter uniq BLAST output: $array_size\n\n";
-        print $summary "\n### WARNING read input: $counter uniq BLAST output: $array_size\n\n";
     }
 
 print "\n$counter contigs\n";
 print "Total bases: $frag_size_total\n\n";
 
-print $summary "\n$counter contigs\n";
-print $summary "Total bases: $frag_size_total\n\n";
+print "\n$counter contigs\n";
+print $idtable "Total bases: $frag_size_total\n\n";
+
+# LaTeX file
+open (my $tex, '>', $samplename . ".tex") or die "$!";
+
+my $heredoc = <<'END_MESSAGE';
+\documentclass[a4paper,11pt]{article}
+\usepackage[margin=0.5in]{geometry}
+\usepackage{graphicx}
+\usepackage[table]{xcolor}
+\usepackage{longtable}
+
+\renewcommand{\thepage}{Appendix --  page \arabic{page}}
+
+\begin{document}
+
+\includegraphics[scale=0.2]{/home/tstuber/report_doc/usdalogo.png}
 
 
+\today
 
+\vspace{5mm}
+\textbf{Whole Genome Sequencing Report:  ${n}} 
 
+\vspace{5mm}
 
+\textbf{File Stats}
+\vspace{2mm}
 
+\begin{tabular}{ l | p{7cm} | p{7cm} }
+\hline
+file name & $forReads & $revReads \\  #sed "s/$n[._]//g" | sed 's/_/\\_/g'
+\hline
+read count & $forcount & $revcount \\
+file size & $forsize & $revsize \\
+\hline
+\end{tabular}
 
+\vspace{5mm}
+\textbf{Assembly}
+\vspace{2mm}
+\begin{tabular}{ l | l | l | l | l | l | l | p{7cm} }
+\hline
+# need table here
+
+\hline
+\end{tabular}
+
+\vspace{5mm}
+\textbf{Identification}
+\vspace{2mm}
+\begin{longtable}{ l | l | p{13cm} }
+\hline
+n & accession & identification \\
+\hline
+# need table here
+\hline
+\end{longtable}
+\end{document}
+END_MESSAGE
+
+print $tex "$heredoc";
+
+print "$heredoc";
 
 
 
