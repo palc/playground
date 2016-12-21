@@ -83,6 +83,9 @@ my $input_R2_unzip;
 # single reads
 my $input_zip;
 my $input_unzip;
+my $countR1;
+my $countR2;
+my $countsingle;
 
 if ($read_type eq "paired") {
     # place zip and unzipped file into variables
@@ -109,6 +112,17 @@ if ($read_type eq "paired") {
 
     print "Unzipped Files:\n";
     print "$input_R1_unzip\n";
+    open my $fh, '<', $input_R1_unzip or die "unable to open file '$input_R1_unzip' for reading : $!";
+    while (my $line = <$fh>) {
+        chomp $line;
+        if ( $line eq "+" ) {
+            $count++;
+        }
+    }
+    print "$countR1\n";
+
+    exit 1;
+    #print "$countR1\n";
     print "$input_R2_unzip\n\n";
 } else {
     
@@ -280,7 +294,7 @@ my $heredoc = <<'END_MESSAGE';
 
 \begin{tabular}{ l | p{7cm} | p{7cm} }
 \hline
-file name & $forReads & $revReads \\  #sed "s/$n[._]//g" | sed 's/_/\\_/g'
+file name & $input_R1_unzip & $input_R2_unzip \\  #sed "s/$n[._]//g" | sed 's/_/\\_/g'
 \hline
 read count & $forcount & $revcount \\
 file size & $forsize & $revsize \\
@@ -312,9 +326,9 @@ END_MESSAGE
 
 print $tex "$heredoc";
 
-print "$heredoc";
+#print "$heredoc";
 
-
+print "$countR1";
 
 
 
