@@ -132,6 +132,7 @@ if ($read_type eq "paired") {
 
 my $size = -s $input_R1_unzip;
 print "size: $size\n";
+exit 1;
 
 my $countR1;
 my $countR2;
