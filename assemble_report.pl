@@ -2,6 +2,7 @@
 
 use strict;
 use warnings;
+#use 5.010;
 
 use File::Basename;
 use Data::Dumper qw(Dumper);
@@ -83,9 +84,6 @@ my $input_R2_unzip;
 # single reads
 my $input_zip;
 my $input_unzip;
-my $countR1;
-my $countR2;
-my $countsingle;
 
 if ($read_type eq "paired") {
     # place zip and unzipped file into variables
@@ -112,17 +110,6 @@ if ($read_type eq "paired") {
 
     print "Unzipped Files:\n";
     print "$input_R1_unzip\n";
-    open my $fh, '<', $input_R1_unzip or die "unable to open file '$input_R1_unzip' for reading : $!";
-    while (my $line = <$fh>) {
-        chomp $line;
-        if ( $line eq "+" ) {
-            $count++;
-        }
-    }
-    print "$countR1\n";
-
-    exit 1;
-    #print "$countR1\n";
     print "$input_R2_unzip\n\n";
 } else {
     
@@ -141,6 +128,40 @@ if ($read_type eq "paired") {
     
     print "Unzipped File:\n";
     print "$input_unzip\n\n";
+}
+
+my $size = -s $input_R1_unzip;
+print "size: $size\n";
+
+my $countR1;
+my $countR2;
+# Get read counts
+if ($read_type eq "paired") {
+    # Read 1
+    open my $fh, '<', $input_R1_unzip or die "unable to open file '$input_R1_unzip' for reading : $!";
+    while (my $line = <$fh>) {
+        chomp $line;
+        if ( $line eq "+" ) {
+            $countR1++;
+        }
+    }
+    # Read 2
+    open my $fh, '<', $input_R1_unzip or die "unable to open file '$input_R1_unzip' for reading : $!";
+    while (my $line = <$fh>) {
+        chomp $line;
+        if ( $line eq "+" ) {
+            $countR2++;
+        }
+    }
+}else{
+    # Single Read
+    open my $fh, '<', $input_R1_unzip or die "unable to open file '$input_R1_unzip' for reading : $!";
+    while (my $line = <$fh>) {
+        chomp $line;
+        if ( $line eq "+" ) {
+            $$countR1++;
+        }
+    }
 }
 
 if ($read_type eq "paired") {
@@ -296,7 +317,7 @@ my $heredoc = <<'END_MESSAGE';
 \hline
 file name & $input_R1_unzip & $input_R2_unzip \\  #sed "s/$n[._]//g" | sed 's/_/\\_/g'
 \hline
-read count & $forcount & $revcount \\
+read count & $countR1 & $countR2 \\
 file size & $forsize & $revsize \\
 \hline
 \end{tabular}
@@ -327,8 +348,6 @@ END_MESSAGE
 print $tex "$heredoc";
 
 #print "$heredoc";
-
-print "$countR1";
 
 
 
