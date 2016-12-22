@@ -301,7 +301,7 @@ print $idtable "Total bases: $frag_size_total\n\n";
 # LaTeX file
 open (my $tex, '>', $samplename . ".tex") or die "$!";
 
-my $heredoc = <<'END_MESSAGE';
+my $heredoc = <<END_MESSAGE;
 \documentclass[a4paper,11pt]{article}
 \usepackage[margin=0.5in]{geometry}
 \usepackage{graphicx}
@@ -318,7 +318,7 @@ my $heredoc = <<'END_MESSAGE';
 \today
 
 \vspace{5mm}
-\textbf{Whole Genome Sequencing Report:  ${n}} 
+\textbf{Whole Genome Sequencing Report:  NEED ID VARIBLE} 
 
 \vspace{5mm}
 
