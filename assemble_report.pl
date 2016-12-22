@@ -348,12 +348,6 @@ foreach my $name (sort {$id_count{$b} <=> $id_count{$a}} keys %id_count) {
     print $idtable "$id_count{$name} & $name \\\\ \n";
 }
 
-# put $idtable into array for heredoc
-#my @table;
-#open (FH, '<', $tablepath) or die "Can't open $file for read: $!";
-#@table = <FH>;
-#close FH or die "Cannot close $tablepath: $!";
-#print $table;
 
 # check that blast out elements == in reads, ie number of expected ids output
 my $array_size = scalar @lines;
@@ -383,7 +377,7 @@ print "L50: $l50\n";
 # LaTeX file
 open (my $tex, '>', $samplename . ".tex") or die "$!";
 
-my $heredoc = <<END_MESSAGE;
+my $section1 = <<END_MESSAGE;
 \\documentclass[a4paper,11pt]{article}
 \\usepackage[margin=0.5in]{geometry}
 \\usepackage{graphicx}
@@ -433,14 +427,25 @@ $scaffold_number & $scaffold_total & $small_contigs & $n50 & $l50 \\\\
 \\hline
 n & accession & identification \\\\
 \\hline
+END_MESSAGE
 
-
+my $section3 = <<END_MESSAGE;
 \\hline
 \\end{longtable}
 \\end{document}
 END_MESSAGE
 
-print $tex "$heredoc";
+# heredoc up to idtable
+print $tex "$section1";
+
+# idtable
+open ($idtable, '<', $tablepath) or die "$!";
+while (<$idtable>) {
+    print $tex "$_";
+}
+
+# complete heredoc
+print $tex "$section3";
 
 #print "$heredoc";
 
