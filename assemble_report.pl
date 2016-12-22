@@ -130,9 +130,17 @@ if ($read_type eq "paired") {
     print "$input_unzip\n\n";
 }
 
-my $size = -s $input_R1_unzip;
-print "size: $size\n";
-exit 1;
+# get read sizes
+if ($read_type eq "paired") {
+    my $sizeR1 = -s $input_R1_unzip;
+    my $sizeR2 = -s $input_R2_unzip;
+    $sizeR1 =~ s/(\d{1,3}?)(?=(\d{3})+$)/$1,/g;
+    $sizeR2 =~ s/(\d{1,3}?)(?=(\d{3})+$)/$1,/g;
+}else{
+    my $sizeR1 = -s $input_R1_unzip;
+    $sizeR1 =~ s/(\d{1,3}?)(?=(\d{3})+$)/$1,/g;
+}
+
 
 my $countR1;
 my $countR2;
@@ -147,22 +155,25 @@ if ($read_type eq "paired") {
         }
     }
     # Read 2
-    open my $fh, '<', $input_R1_unzip or die "unable to open file '$input_R1_unzip' for reading : $!";
+    open my $fh, '<', $input_R2_unzip or die "unable to open file '$input_R1_unzip' for reading : $!";
     while (my $line = <$fh>) {
         chomp $line;
         if ( $line eq "+" ) {
             $countR2++;
         }
     }
+    $countR1 =~ s/(\d{1,3}?)(?=(\d{3})+$)/$1,/g;
+    $countR2 =~ s/(\d{1,3}?)(?=(\d{3})+$)/$1,/g;
 }else{
     # Single Read
-    open my $fh, '<', $input_R1_unzip or die "unable to open file '$input_R1_unzip' for reading : $!";
+    open my $fh, '<', $input_unzip or die "unable to open file '$input_R1_unzip' for reading : $!";
     while (my $line = <$fh>) {
         chomp $line;
         if ( $line eq "+" ) {
-            $$countR1++;
+            $countR1++;
         }
     }
+    $countR1 =~ s/(\d{1,3}?)(?=(\d{3})+$)/$1,/g;
 }
 
 if ($read_type eq "paired") {
@@ -319,7 +330,7 @@ my $heredoc = <<'END_MESSAGE';
 file name & $input_R1_unzip & $input_R2_unzip \\  #sed "s/$n[._]//g" | sed 's/_/\\_/g'
 \hline
 read count & $countR1 & $countR2 \\
-file size & $forsize & $revsize \\
+file size & $sizeR1 & $sizeR2 \\
 \hline
 \end{tabular}
 
