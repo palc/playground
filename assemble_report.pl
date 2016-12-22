@@ -130,10 +130,12 @@ if ($read_type eq "paired") {
     print "$input_unzip\n\n";
 }
 
+my $sizeR1;
+my $sizeR2;
 # get read sizes
 if ($read_type eq "paired") {
-    my $sizeR1 = -s $input_R1_unzip;
-    my $sizeR2 = -s $input_R2_unzip;
+    $sizeR1 = -s $input_R1_unzip;
+    $sizeR2 = -s $input_R2_unzip;
     $sizeR1 =~ s/(\d{1,3}?)(?=(\d{3})+$)/$1,/g;
     $sizeR2 =~ s/(\d{1,3}?)(?=(\d{3})+$)/$1,/g;
 }else{
@@ -298,74 +300,67 @@ print "Total bases: $frag_size_total\n\n";
 print "\n$counter contigs\n";
 print $idtable "Total bases: $frag_size_total\n\n";
 
-if ($read_type eq "paired") {
-    $input_R1_unzip =~ s/\./_/g;
-    $input_R1_unzip =~ s/_/\\_/g;
-    $input_R2_unzip =~ s/\./_/g;
-    $input_R2_unzip =~ s/_/\\_/g;
-}else{
-    $input_R1_unzip = $input_unzip;
-    $input_R1_unzip =~ s/\./_/g;
-    $input_R1_unzip =~ s/_/\\_/g;
-}
+
+my $samplename_R1_unzip = $samplename . "_R1.fastq";
+my $samplename_R2_unzip = $samplename . "_R2.fastq";
 
 # LaTeX file
 open (my $tex, '>', $samplename . ".tex") or die "$!";
 
-my $heredoc = <<END_MESSAGE;
-\documentclass[a4paper,11pt]{article}
-\usepackage[margin=0.5in]{geometry}
-\usepackage{graphicx}
-\usepackage[table]{xcolor}
-\usepackage{longtable}
+my $heredoc = <<"END_MESSAGE";
+\\documentclass[a4paper,11pt]{article}
+\\usepackage[margin=0.5in]{geometry}
+\\usepackage{graphicx}
+\\usepackage[table]{xcolor}
+\\usepackage{longtable}
 
-\renewcommand{\thepage}{Appendix --  page \arabic{page}}
+\\renewcommand{\\thepage}{Appendix --  page \\arabic{page}}
 
-\begin{document}
+\\begin{document}
 
-\includegraphics[scale=0.2]{/home/tstuber/report_doc/usdalogo.png}
+\\includegraphics[scale=0.2]{/home/tstuber/report_doc/usdalogo.png}
 
 
-\today
+\\today
 
-\vspace{5mm}
-\textbf{Whole Genome Sequencing Report:  NEED ID VARIBLE} 
+\\vspace{5mm}
+\\textbf{Whole Genome Sequencing Report:  $samplename} 
 
-\vspace{5mm}
+\\vspace{5mm}
 
-\textbf{File Stats}
-\vspace{2mm}
+\\textbf{File Stats}
+\\vspace{2mm}
 
-\begin{tabular}{ l | p{7cm} | p{7cm} }
-\hline
-file name & $input_R1_unzip & $input_R2_unzip \\
-\hline
-read count & $countR1 & $countR2 \\
-file size & $sizeR1 & $sizeR2 \\
-\hline
-\end{tabular}
+\\begin{tabular}{ l | p{7cm} | p{7cm} }
+\\hline
+file name & $samplename_R1_unzip & $samplename_R2_unzip \\\\
+\\hline
+read count & $countR1 & $countR2 \\\\
+file size & $sizeR1 & $sizeR2 \\\\
+\\hline
+\\end{tabular}
 
-\vspace{5mm}
-\textbf{Assembly}
-\vspace{2mm}
-\begin{tabular}{ l | l | l | l | l | l | l | p{7cm} }
-\hline
+\\vspace{5mm}
+\\textbf{Assembly}
+\\vspace{2mm}
+\\begin{tabular}{ l | l | l | l | l | l | l | p{7cm} }
+\\hline
 # need table here
 
-\hline
-\end{tabular}
+\\hline
+\\end{tabular}
 
-\vspace{5mm}
-\textbf{Identification}
-\vspace{2mm}
-\begin{longtable}{ l | l | p{13cm} }
-\hline
-n & accession & identification \\
-\hline
+\\vspace{5mm}
+\\textbf{Identification}
+\\vspace{2mm}
+\\begin{longtable}{ l | l | p{13cm} }
+\\hline
+n & accession & identification \\\\
+\\hline
 # need table here
-\hline
-\end{longtable}
-\end{document}
+\\hline
+\\end{longtable}
+\\end{document}
 END_MESSAGE
 
 print $tex "$heredoc";
