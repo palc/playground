@@ -196,7 +196,7 @@ if (not defined $scaffolds_file) {
 `rm -r K45 K47 K49 K51 K53 K57 K59 K61 K63 K65 K77 K99 K127 misc mismatch_corrector tmp scaffolds.paths assembly_graph.fastg before_rr.fasta contigs.fasta contigs.paths corrected dataset.info input_dataset.yaml params.txt`;
 
 print "scaffolds file: $scaffolds_file";
-`assemblathon_stats.pl $scaffolds_file > "stats_in.txt"`
+`assemblathon_stats.pl $scaffolds_file > "stats_in.txt"`;
 
 ###
 #ASSEMBLY STATS
@@ -260,17 +260,14 @@ while (<$statsin>) {
 }
 
 ###
-
-# LaTeX file
-open (my $tex, '>', $samplename . ".tex") or die "$!";
-
+# BLAST 
 my $frag_size_total=0;
 my $counter=0;
 my $small_contigs=0;
 my $ave_length;
 my $inblast = "$samplename" . "_to_blast.fasta";
 
-my $inseq = Bio::SeqIO->new(-file => $file, -format => "fasta");
+my $inseq = Bio::SeqIO->new(-file => $scaffolds_file, -format => "fasta");
 my $outseq = Bio::SeqIO->new(-file => ">$inblast", -fomat => 'fasta');
 while (my $seq_obj = $inseq->next_seq) {
     $counter++;
@@ -280,8 +277,8 @@ while (my $seq_obj = $inseq->next_seq) {
         my $subsequence=$seq_obj->trunc(1,$length-1);
         $outseq->write_seq($subsequence);
     }else{
-        $small_contigs++
-   # }
+        $small_contigs++;
+   }
 }
 
 print "\n$counter contigs\n";
@@ -344,11 +341,19 @@ while (my ($key, $value) = each %acc_counts) {
 # reverse with: {$id_count{$b} <=> $id_count{$a}}
 
 # LaTeX file
-open (my $idtable, '>', $samplename . ".idtable") or die "$!";
+my $tablepath = $samplename . ".idtable";
+open (my $idtable, '>', $tablepath) or die "$!";
 foreach my $name (sort {$id_count{$b} <=> $id_count{$a}} keys %id_count) {
     print "$id_count{$name} --> $name\n";
     print $idtable "$id_count{$name} & $name \\\\ \n";
 }
+
+# put $idtable into array for heredoc
+#my @table;
+#open (FH, '<', $tablepath) or die "Can't open $file for read: $!";
+#@table = <FH>;
+#close FH or die "Cannot close $tablepath: $!";
+#print $table;
 
 # check that blast out elements == in reads, ie number of expected ids output
 my $array_size = scalar @lines;
@@ -378,7 +383,7 @@ print "L50: $l50\n";
 # LaTeX file
 open (my $tex, '>', $samplename . ".tex") or die "$!";
 
-my $heredoc = <<"END_MESSAGE";
+my $heredoc = <<END_MESSAGE;
 \\documentclass[a4paper,11pt]{article}
 \\usepackage[margin=0.5in]{geometry}
 \\usepackage{graphicx}
@@ -414,10 +419,10 @@ file size & $sizeR1 & $sizeR2 \\\\
 \\vspace{5mm}
 \\textbf{Assembly}
 \\vspace{2mm}
-\\begin{tabular}{ l | l | l | l | l | l | l | p{7cm} }
+\\begin{tabular}{ l | l | l | l | l | l }
 \\hline
-# need table here
-
+Scaffolds & Total Bases & Contigs < 150 bases & N50 & L50 \\\\
+$scaffold_number & $scaffold_total & $small_contigs & $n50 & $l50 \\\\
 \\hline
 \\end{tabular}
 
@@ -428,7 +433,8 @@ file size & $sizeR1 & $sizeR2 \\\\
 \\hline
 n & accession & identification \\\\
 \\hline
-# need table here
+
+
 \\hline
 \\end{longtable}
 \\end{document}
