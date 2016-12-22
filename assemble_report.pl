@@ -9,6 +9,7 @@ use Data::Dumper qw(Dumper);
 use Cwd;
 use Bio::Seq;
 use Bio::SeqIO;
+use Number::Bytes::Human qw(format_bytes);
 
 # Usage:
     # assemble_report.pl < full path to fastq files >
@@ -134,13 +135,14 @@ my $sizeR1;
 my $sizeR2;
 # get read sizes
 if ($read_type eq "paired") {
-    $sizeR1 = -s $input_R1_unzip;
-    $sizeR2 = -s $input_R2_unzip;
-    $sizeR1 =~ s/(\d{1,3}?)(?=(\d{3})+$)/$1,/g;
-    $sizeR2 =~ s/(\d{1,3}?)(?=(\d{3})+$)/$1,/g;
+    
+    $sizeR1 = format_bytes(-s $input_R1_unzip);
+    $sizeR2 = format_bytes(-s $input_R2_unzip);
+    #$sizeR1 =~ s/(\d{1,3}?)(?=(\d{3})+$)/$1,/g;
+    #$sizeR2 =~ s/(\d{1,3}?)(?=(\d{3})+$)/$1,/g;
 }else{
-    my $sizeR1 = -s $input_R1_unzip;
-    $sizeR1 =~ s/(\d{1,3}?)(?=(\d{3})+$)/$1,/g;
+    $sizeR1 = format_bytes(-s $input_R1_unzip);
+    #$sizeR1 =~ s/(\d{1,3}?)(?=(\d{3})+$)/$1,/g;
 }
 
 
@@ -272,9 +274,9 @@ my $outseq = Bio::SeqIO->new(-file => ">$inblast", -fomat => 'fasta');
 while (my $seq_obj = $inseq->next_seq) {
     $counter++;
     my $length = $seq_obj->length;
-    $frag_size_total = $frag_size_total + $length;
     if ( $length > 150 ){
         my $subsequence=$seq_obj->trunc(1,$length-1);
+        $frag_size_total = $frag_size_total + $length;
         $outseq->write_seq($subsequence);
     }else{
         $small_contigs++;
@@ -362,11 +364,6 @@ print "\n$counter contigs\n";
 print "Total bases: $frag_size_total\n\n";
 
 print "\n$counter contigs\n";
-print $idtable "Total bases: $frag_size_total\n\n";
-
-
-my $samplename_R1_unzip = $samplename . "_R1.fastq";
-my $samplename_R2_unzip = $samplename . "_R2.fastq";
 
 print "small contigs: $small_contigs\n";
 print "scaffold number: $scaffold_number\n";
@@ -375,7 +372,13 @@ print "N50: $n50\n";
 print "L50: $l50\n";
 
 # LaTeX file
-open (my $tex, '>', $samplename . ".tex") or die "$!";
+my $latex_out = $samplename . ".tex";
+open (my $tex, '>', $latex_out) or die "$!";
+
+$samplename =~ s/\./-/g;
+$samplename =~ s/_/-/g;
+my $samplename_R1_unzip = $samplename . "\\_R1.fastq";
+my $samplename_R2_unzip = $samplename . "\\_R2.fastq";
 
 my $section1 = <<END_MESSAGE;
 \\documentclass[a4paper,11pt]{article}
@@ -405,18 +408,20 @@ my $section1 = <<END_MESSAGE;
 \\hline
 file name & $samplename_R1_unzip & $samplename_R2_unzip \\\\
 \\hline
-read count & $countR1 & $countR2 \\\\
+read count & $countR1 bases & $countR2 bases \\\\
 file size & $sizeR1 & $sizeR2 \\\\
 \\hline
 \\end{tabular}
 
 \\vspace{5mm}
+
 \\textbf{Assembly}
 \\vspace{2mm}
+
 \\begin{tabular}{ l | l | l | l | l | l }
 \\hline
-Scaffolds & Total Bases & Contigs < 150 bases & N50 & L50 \\\\
-$scaffold_number & $scaffold_total & $small_contigs & $n50 & $l50 \\\\
+Scaffolds & Total bases & BLAST total & Contigs \\textless 150 bases & N50 & L50 \\\\
+$scaffold_number & $scaffold_total & $frag_size_total & $small_contigs & $n50 & $l50 \\\\
 \\hline
 \\end{tabular}
 
@@ -425,13 +430,17 @@ $scaffold_number & $scaffold_total & $small_contigs & $n50 & $l50 \\\\
 \\vspace{2mm}
 \\begin{longtable}{ l | l | p{13cm} }
 \\hline
-n & accession & identification \\\\
+n & bases & identification \\\\
 \\hline
 END_MESSAGE
 
 my $section3 = <<END_MESSAGE;
 \\hline
 \\end{longtable}
+
+SPAdes assembly performed \\\\
+BLAST nt identifications \\\\ 
+
 \\end{document}
 END_MESSAGE
 
@@ -447,21 +456,11 @@ while (<$idtable>) {
 # complete heredoc
 print $tex "$section3";
 
-#print "$heredoc";
+`pdflatex $latex_out`;
+print "tex $latex_out\n";
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+`echo "assembly report completed" > mytempfile; cat mytempfile | mutt -s "$samplename assembly" -a *pdf -- tod.p.stuber\@usda.gov`;
+print "email tod.p.stuber\@usda.gov\n";
 
 print "\n\n### DONE\n\n";
 # 2016-12-20 tstuber
