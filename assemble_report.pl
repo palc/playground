@@ -188,20 +188,87 @@ if ($read_type eq "paired") {
 
 print "SPADES IS DONE RUNNING < $samplename >\n";
 
-my $file = < ${path}scaffolds.fasta >;
-if (not defined $file) {
+my $scaffolds_file = < ${path}scaffolds.fasta >;
+if (not defined $scaffolds_file) {
     die "### scaffolds file did not create\n"
 }
 
 `rm -r K45 K47 K49 K51 K53 K57 K59 K61 K63 K65 K77 K99 K127 misc mismatch_corrector tmp scaffolds.paths assembly_graph.fastg before_rr.fasta contigs.fasta contigs.paths corrected dataset.info input_dataset.yaml params.txt`;
 
-print "scaffolds file: $file";
+print "scaffolds file: $scaffolds_file";
+`assemblathon_stats.pl $scaffolds_file > "stat_summary.txt"`
+
+###
+#ASSEMBLY STATS
+# open file to write to
+open (my $stat_summary, '>', "stat_summary.txt") or die "$!";
+
+my $scaffold_number;
+my $scaffold_total;
+my $n50;
+my $l50;
+
+my $statsin;
+# open stats file to read from
+open ($statsin, '<', "stats_in.txt") or die "$!";
+while (<$statsin>) {
+    chomp;
+    if ( /Number of scaffolds   / ) {
+        #remove leading spaces
+        s/^ *//g;
+        my @split = split(/ {2,}/, $_);
+        $scaffold_number = $split[1];
+        $scaffold_number =~ s/(\d{1,3}?)(?=(\d{3})+$)/$1,/g;
+    }
+}
+
+# open stats file to read from
+open ($statsin, '<', "stats_in.txt") or die "$!";
+while (<$statsin>) {
+    chomp;
+    if ( /Total size of scaffolds/ ) {
+        #remove leading spaces
+        s/^ *//g;
+        my @split = split(/ {2,}/, $_);
+        $scaffold_total = $split[1];
+        $scaffold_total =~ s/(\d{1,3}?)(?=(\d{3})+$)/$1,/g;
+    }
+}
+
+# open stats file to read from
+open ($statsin, '<', "stats_in.txt") or die "$!";
+while (<$statsin>) {
+    chomp;
+    if ( /N50 scaffold length/ ) {
+        #remove leading spaces
+        s/^ *//g;
+        my @split = split(/ {2,}/, $_);
+        $n50 = $split[1];
+        $n50 =~ s/(\d{1,3}?)(?=(\d{3})+$)/$1,/g;
+    }
+}
+
+# open stats file to read from
+open ($statsin, '<', "stats_in.txt") or die "$!";
+while (<$statsin>) {
+    chomp;
+    if ( /L50 scaffold count/ ) {
+        #remove leading spaces
+        s/^ *//g;
+        my @split = split(/ {2,}/, $_);
+        $l50 = $split[1];
+        $l50 =~ s/(\d{1,3}?)(?=(\d{3})+$)/$1,/g;
+    }
+}
+
+###
 
 # LaTeX file
 open (my $tex, '>', $samplename . ".tex") or die "$!";
 
 my $frag_size_total=0;
 my $counter=0;
+my $small_contigs=0;
 my $ave_length;
 my $inblast = "$samplename" . "_to_blast.fasta";
 
@@ -214,8 +281,8 @@ while (my $seq_obj = $inseq->next_seq) {
     if ( $length > 150 ){
         my $subsequence=$seq_obj->trunc(1,$length-1);
         $outseq->write_seq($subsequence);
-    } #else{
-        #$outseq->write_seq($seq_obj);
+    }else{
+        $small_contigs++
    # }
 }
 
@@ -279,8 +346,8 @@ while (my ($key, $value) = each %acc_counts) {
 # reverse with: {$id_count{$b} <=> $id_count{$a}}
 
 # LaTeX file
- open (my $idtable, '>', $samplename . ".idtable") or die "$!";
-foreach my $name (sort {$id_count{$a} <=> $id_count{$b}} keys %id_count) {
+open (my $idtable, '>', $samplename . ".idtable") or die "$!";
+foreach my $name (sort {$id_count{$b} <=> $id_count{$a}} keys %id_count) {
     print "$id_count{$name} --> $name\n";
     print $idtable "$id_count{$name} & $name \\\\ \n";
 }
@@ -303,6 +370,12 @@ print $idtable "Total bases: $frag_size_total\n\n";
 
 my $samplename_R1_unzip = $samplename . "_R1.fastq";
 my $samplename_R2_unzip = $samplename . "_R2.fastq";
+
+print "small contigs: $small_contigs\n";
+print "scaffold number: $scaffold_number\n";
+print "scaffold total: $scaffold_total\n";
+print "N50: $n50\n";
+print "L50: $l50\n";
 
 # LaTeX file
 open (my $tex, '>', $samplename . ".tex") or die "$!";
