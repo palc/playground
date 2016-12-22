@@ -298,6 +298,17 @@ print "Total bases: $frag_size_total\n\n";
 print "\n$counter contigs\n";
 print $idtable "Total bases: $frag_size_total\n\n";
 
+if ($read_type eq "paired") {
+    $input_R1_unzip =~ s/\./_/g;
+    $input_R1_unzip =~ s/_/\\_/g;
+    $input_R2_unzip =~ s/\./_/g;
+    $input_R2_unzip =~ s/_/\\_/g;
+}else{
+    $input_R1_unzip = $input_unzip;
+    $input_R1_unzip =~ s/\./_/g;
+    $input_R1_unzip =~ s/_/\\_/g;
+}
+
 # LaTeX file
 open (my $tex, '>', $samplename . ".tex") or die "$!";
 
@@ -327,7 +338,7 @@ my $heredoc = <<END_MESSAGE;
 
 \begin{tabular}{ l | p{7cm} | p{7cm} }
 \hline
-file name & $input_R1_unzip & $input_R2_unzip \\  #sed "s/$n[._]//g" | sed 's/_/\\_/g'
+file name & $input_R1_unzip & $input_R2_unzip \\
 \hline
 read count & $countR1 & $countR2 \\
 file size & $sizeR1 & $sizeR2 \\
