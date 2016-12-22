@@ -196,12 +196,10 @@ if (not defined $scaffolds_file) {
 `rm -r K45 K47 K49 K51 K53 K57 K59 K61 K63 K65 K77 K99 K127 misc mismatch_corrector tmp scaffolds.paths assembly_graph.fastg before_rr.fasta contigs.fasta contigs.paths corrected dataset.info input_dataset.yaml params.txt`;
 
 print "scaffolds file: $scaffolds_file";
-`assemblathon_stats.pl $scaffolds_file > "stat_summary.txt"`
+`assemblathon_stats.pl $scaffolds_file > "stats_in.txt"`
 
 ###
 #ASSEMBLY STATS
-# open file to write to
-open (my $stat_summary, '>', "stat_summary.txt") or die "$!";
 
 my $scaffold_number;
 my $scaffold_total;
