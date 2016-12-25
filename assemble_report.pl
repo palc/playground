@@ -16,6 +16,9 @@ use Number::Bytes::Human qw(format_bytes);
     # Files can be zipped or unzipped, single or paired reads
     # Paired files must be labed R1 and R2
 
+# Reads < $remove_reads will not be identified
+my $remove_reads = 500;
+
 print "----- START -----\n\n";
 
 my $path = getcwd;
@@ -195,7 +198,7 @@ if (not defined $scaffolds_file) {
     die "### scaffolds file did not create\n"
 }
 
-`rm -r K45 K47 K49 K51 K53 K57 K59 K61 K63 K65 K77 K99 K127 misc mismatch_corrector tmp scaffolds.paths assembly_graph.fastg before_rr.fasta contigs.fasta contigs.paths corrected dataset.info input_dataset.yaml params.txt`;
+#`rm -r K45 K47 K49 K51 K53 K57 K59 K61 K63 K65 K77 K99 K127 misc mismatch_corrector tmp scaffolds.paths assembly_graph.fastg before_rr.fasta contigs.fasta contigs.paths corrected dataset.info input_dataset.yaml params.txt`;
 
 print "scaffolds file: $scaffolds_file";
 `assemblathon_stats.pl $scaffolds_file > "stats_in.txt"`;
@@ -274,7 +277,7 @@ my $outseq = Bio::SeqIO->new(-file => ">$inblast", -fomat => 'fasta');
 while (my $seq_obj = $inseq->next_seq) {
     $counter++;
     my $length = $seq_obj->length;
-    if ( $length > 150 ){
+    if ( $length > $remove_reads ){
         my $subsequence=$seq_obj->trunc(1,$length-1);
         $frag_size_total = $frag_size_total + $length;
         $outseq->write_seq($subsequence);
@@ -320,6 +323,7 @@ while (my ($key, $value) = each %acc_counts) {
     # iterate through lines to get isolate name matching accession
     my $count_total_length=0;
     foreach my $line (@lines) {
+        chomp $line;
         my @tab = split(/\t/, $line);    
         if ($key eq $tab[-2]){
             # right to variable, when for multi times will just overwrite
@@ -335,7 +339,12 @@ while (my ($key, $value) = each %acc_counts) {
     # value is the number accession was counted in BLAST output
     # put isolate id and count value into hash for sorting below
     $count_total_length =~ s/(?<=\d)(?=(?:\d\d\d)+\b)/,/g;
-    $id_count{"$count_total_length" . " & " . "$isolate_name"} = $value;
+    my $isolate_substring = substr $isolate_name, 0, 54;
+    $key  =~ s/\./-/g;
+    $key =~ s/_/\\_/g;
+    $isolate_substring =~ s/\./-/g;
+    $isolate_substring =~ s/_/\\_/g;
+    $id_count{"$count_total_length" . " & " . $key . " & " . "$isolate_substring"} = $value;
 }
 
 # output sort
@@ -386,6 +395,7 @@ my $section1 = <<END_MESSAGE;
 \\usepackage{graphicx}
 \\usepackage[table]{xcolor}
 \\usepackage{longtable}
+\\usepackage{hyperref}
 
 \\renewcommand{\\thepage}{Appendix --  page \\arabic{page}}
 
@@ -401,15 +411,25 @@ my $section1 = <<END_MESSAGE;
 
 \\vspace{5mm}
 
+\\textbf{Sequencing Technology}
+\\vspace{2mm}
+
+\\begin{tabular}{ p{11cm} }
+Nextera XT DNA Library Preparation \\\\
+MiSeq 2 x 250 Read Generation \\\\
+\\end{tabular}
+
+\\vspace{5mm} 
+
 \\textbf{File Stats}
 \\vspace{2mm}
 
 \\begin{tabular}{ l | p{7cm} | p{7cm} }
 \\hline
-file name & $samplename_R1_unzip & $samplename_R2_unzip \\\\
+File name & $samplename_R1_unzip & $samplename_R2_unzip \\\\
 \\hline
-read count & $countR1 bases & $countR2 bases \\\\
-file size & $sizeR1 & $sizeR2 \\\\
+Fead count & $countR1 bases & $countR2 bases \\\\
+File size & $sizeR1 & $sizeR2 \\\\
 \\hline
 \\end{tabular}
 
@@ -418,9 +438,10 @@ file size & $sizeR1 & $sizeR2 \\\\
 \\textbf{Assembly}
 \\vspace{2mm}
 
-\\begin{tabular}{ l | l | l | l | l | l }
+\\begin{tabular}{ p{2cm} | p{3cm} | p{3cm} | l | p{2cm} | p{1cm} }
 \\hline
-Scaffolds & Total bases & BLAST total & Contigs \\textless 150 bases & N50 & L50 \\\\
+Scaffolds & Total bases & BLAST total & Contigs \\textless $remove_reads bases & N50 & L50 \\\\
+\\hline
 $scaffold_number & $scaffold_total & $frag_size_total & $small_contigs & $n50 & $l50 \\\\
 \\hline
 \\end{tabular}
@@ -428,9 +449,9 @@ $scaffold_number & $scaffold_total & $frag_size_total & $small_contigs & $n50 & 
 \\vspace{5mm}
 \\textbf{Identification}
 \\vspace{2mm}
-\\begin{longtable}{ l | l | p{13cm} }
+\\begin{longtable}{ l | l | p{3cm} | p{10cm} }
 \\hline
-n & bases & identification \\\\
+N & Bases & NCBI Accession & Identification \\\\
 \\hline
 END_MESSAGE
 
@@ -438,9 +459,16 @@ my $section3 = <<END_MESSAGE;
 \\hline
 \\end{longtable}
 
-SPAdes assembly performed \\\\
-BLAST nt identifications \\\\ 
+\\begin{tabular}{ p{15cm} }
+To minimize false indentifications caused by indexing cross-talk contigs \\textless $remove_reads have not been identified. See link for additional information: \\href{http://cgrb.oregonstate.edu/core/illumina-hiseq-3000/illumina-barcodes}{Illumina Cross-talk}
+\\end{tabular}
 
+\\vspace{5mm}
+
+\\begin{tabular}{ p{11cm} }
+\\href{http://cab.spbu.ru/software/spades/}{Link: SPAdes assembler} \\\\
+\\href{https://blast.ncbi.nlm.nih.gov/Blast.cgi}{Link: BLAST nt identifications} \\\\
+\\end{tabular}
 \\end{document}
 END_MESSAGE
 
