@@ -271,18 +271,29 @@ my $counter=0;
 my $small_contigs=0;
 my $ave_length;
 my $inblast = "$samplename" . "_to_blast.fasta";
+my $unused = "unused.fasta";
 
 my $inseq = Bio::SeqIO->new(-file => $scaffolds_file, -format => "fasta");
 my $outseq = Bio::SeqIO->new(-file => ">$inblast", -fomat => 'fasta');
+my $unusedseq = Bio::SeqIO->new(-file => ">$unused", -fomat => 'fasta');
 while (my $seq_obj = $inseq->next_seq) {
     $counter++;
     my $length = $seq_obj->length;
-    if ( $length > $remove_reads ){
-        my $subsequence=$seq_obj->trunc(1,$length-1);
+    
+    my $header = $seq_obj->display_id;
+    my $coverage = $header;
+    chomp $coverage;
+    $coverage =~ s/.*_cov_(.*)/$1/;
+    my $subsequence;
+    
+    if ( $length > $remove_reads || $coverage > 4 ) {
+        $subsequence=$seq_obj->trunc(1,$length-1);
         $frag_size_total = $frag_size_total + $length;
         $outseq->write_seq($subsequence);
     }else{
         $small_contigs++;
+        $subsequence=$seq_obj->trunc(1,$length-1);
+        $unusedseq->write_seq($subsequence);
    }
 }
 
