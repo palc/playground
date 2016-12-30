@@ -9,7 +9,7 @@
 ### !!! VERIFY VCF REFERENCES EQUAL BETWEEN ALIGNMENT AND KSNP" !!! ###
 
 # location of vcfs
-vcf_dir="/Users/tstuber/Desktop/h37-NC_000962_vcfs"
+vcf_dir="/scratch/analysis_staging/b_script/h37_2016-12-16b"
 
 # current working directory must be kSNP analysis run directory containing files
 	# ClusterInfo.ML

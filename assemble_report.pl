@@ -318,8 +318,6 @@ if ( $coverage_diff < 20 ){
 } else {
     $coverage_rating = "passed";
 }
-$ave_coverage_small_contigs =~ s/(?<=\d)(?=(?:\d\d\d)+\b)/,/g;
-$ave_coverage_large_contigs =~ s/(?<=\d)(?=(?:\d\d\d)+\b)/,/g;
 
 $frag_size_total =~ s/(?<=\d)(?=(?:\d\d\d)+\b)/,/g; 
 print "Total bases: $frag_size_total\n\n";
@@ -415,6 +413,7 @@ print "N50: $n50\n";
 print "L50: $l50\n";
 print "Average small contig coverage: $ave_coverage_small_contigs\n";
 print "Average large contig coverage: $ave_coverage_large_contigs\n";
+print "Coverage difference: $coverage_diff\n";
 print "Coverage Rating: $coverage_rating\n";
 
 # LaTeX file

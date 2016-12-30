@@ -1,16 +1,17 @@
 #!/bin/sh
 
-COUNTER=17
+COUNTER=1
 files=`ls *gz | wc -l`
 
 root=`pwd`
 
-while [ $files -gt 2 ]; do
+while [ $files -gt 1 ]; do
     mkdir $COUNTER 
     mv `ls *gz | head -30` ${COUNTER}
     cd ${COUNTER}     
     packagefastqs.sh
-    currentdir=`pwd`; for f in *; do cd $currentdir; echo $f; cd ./$f; processZips.sh H37Rv & done; wait 
+    currentdir=`pwd`; for f in *; do cd $currentdir; echo $f; cd ./$f; processZips.sh ceti1 & done; wait 
+    #email_loopFiles.sh; wait
     cd ${root}
     files=`ls *gz | wc -l`
     echo "files left to do: $files"
