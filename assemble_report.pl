@@ -17,7 +17,7 @@ use Number::Bytes::Human qw(format_bytes);
     # Paired files must be labed R1 and R2
 
 # Reads < $remove_reads will not be identified
-my $remove_reads = 350;
+my $remove_reads = 200;
 
 print "----- START -----\n\n";
 
@@ -292,7 +292,7 @@ while (my $seq_obj = $inseq->next_seq) {
     $coverage =~ s/.*_cov_(.*)/$1/;
     my $subsequence;
     
-    if ( $length < $remove_reads || $coverage < 3){
+    if ( $length < $remove_reads || $coverage < 4){
         $small_contigs++;
         $coverage_small_contigs = $coverage_small_contigs + $coverage;
         $subsequence=$seq_obj->trunc(1,$length-1);
@@ -497,7 +497,7 @@ my $section3 = <<END_MESSAGE;
 \\end{longtable}
 
 \\begin{tabular}{ p{15cm} }
-To minimize false indentifications caused by indexing cross-talk contigs \\textless $remove_reads bases or with \\textless 3X coverage have not been identified. See link for additional information: \\href{http://cgrb.oregonstate.edu/core/illumina-hiseq-3000/illumina-barcodes}{Illumina Cross-talk}
+To minimize false indentifications caused by indexing cross-talk contigs \\textless $remove_reads bases or with \\textless 4X coverage have not been identified. See link for additional information: \\href{http://cgrb.oregonstate.edu/core/illumina-hiseq-3000/illumina-barcodes}{Illumina Cross-talk}
 \\end{tabular}
 
 \\vspace{5mm}
