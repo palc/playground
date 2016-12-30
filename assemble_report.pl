@@ -17,7 +17,7 @@ use Number::Bytes::Human qw(format_bytes);
     # Paired files must be labed R1 and R2
 
 # Reads < $remove_reads will not be identified
-my $remove_reads = 500;
+my $remove_reads = 350;
 
 print "----- START -----\n\n";
 
@@ -198,7 +198,7 @@ if (not defined $scaffolds_file) {
     die "### scaffolds file did not create\n"
 }
 
-#`rm -r K45 K47 K49 K51 K53 K57 K59 K61 K63 K65 K77 K99 K127 misc mismatch_corrector tmp scaffolds.paths assembly_graph.fastg before_rr.fasta contigs.fasta contigs.paths corrected dataset.info input_dataset.yaml params.txt`;
+`rm -r K45 K47 K49 K51 K53 K57 K59 K61 K63 K65 K77 K99 K127 misc mismatch_corrector tmp scaffolds.paths assembly_graph.fastg before_rr.fasta contigs.fasta contigs.paths corrected dataset.info input_dataset.yaml params.txt`;
 
 print "scaffolds file: $scaffolds_file";
 `assemblathon_stats.pl $scaffolds_file > "stats_in.txt"`;
@@ -264,6 +264,9 @@ while (<$statsin>) {
     }
 }
 
+#Output log file
+open (my $log, '>', "log.txt") or die "$!";
+
 ###
 # BLAST 
 my $frag_size_total=0;
@@ -286,15 +289,17 @@ while (my $seq_obj = $inseq->next_seq) {
     $coverage =~ s/.*_cov_(.*)/$1/;
     my $subsequence;
     
-    if ( $length > $remove_reads || $coverage > 4 ) {
-        $subsequence=$seq_obj->trunc(1,$length-1);
-        $frag_size_total = $frag_size_total + $length;
-        $outseq->write_seq($subsequence);
-    }else{
+    if ( $length < $remove_reads || $coverage < 3){
         $small_contigs++;
         $subsequence=$seq_obj->trunc(1,$length-1);
         $unusedseq->write_seq($subsequence);
-   }
+        print $log "removed    length: $length coverage: $coverage  $header\n";
+    } else {
+        $subsequence=$seq_obj->trunc(1,$length-1);
+        $frag_size_total = $frag_size_total + $length;
+        $outseq->write_seq($subsequence);
+        print $log "kept    length: $length coverage: $coverage  $header\n";
+    }
 }
 
 print "\n$counter contigs\n";
@@ -350,7 +355,7 @@ while (my ($key, $value) = each %acc_counts) {
     # value is the number accession was counted in BLAST output
     # put isolate id and count value into hash for sorting below
     $count_total_length =~ s/(?<=\d)(?=(?:\d\d\d)+\b)/,/g;
-    my $isolate_substring = substr $isolate_name, 0, 54;
+    my $isolate_substring = substr $isolate_name, 0, 75;
     $key  =~ s/\./-/g;
     $key =~ s/_/\\_/g;
     $isolate_substring =~ s/\./-/g;
@@ -439,7 +444,7 @@ MiSeq 2 x 250 Read Generation \\\\
 \\hline
 File name & $samplename_R1_unzip & $samplename_R2_unzip \\\\
 \\hline
-Fead count & $countR1 bases & $countR2 bases \\\\
+Read count & $countR1 bases & $countR2 bases \\\\
 File size & $sizeR1 & $sizeR2 \\\\
 \\hline
 \\end{tabular}
@@ -460,7 +465,8 @@ $scaffold_number & $scaffold_total & $frag_size_total & $small_contigs & $n50 & 
 \\vspace{5mm}
 \\textbf{Identification}
 \\vspace{2mm}
-\\begin{longtable}{ l | l | p{3cm} | p{10cm} }
+\\tiny
+\\begin{longtable}{ l | l | p{2cm} | p{11cm} }
 \\hline
 N & Bases & NCBI Accession & Identification \\\\
 \\hline
@@ -471,12 +477,12 @@ my $section3 = <<END_MESSAGE;
 \\end{longtable}
 
 \\begin{tabular}{ p{15cm} }
-To minimize false indentifications caused by indexing cross-talk contigs \\textless $remove_reads have not been identified. See link for additional information: \\href{http://cgrb.oregonstate.edu/core/illumina-hiseq-3000/illumina-barcodes}{Illumina Cross-talk}
+To minimize false indentifications caused by indexing cross-talk contigs \\textless $remove_reads bases or with \\textless 3X coverage have not been identified. See link for additional information: \\href{http://cgrb.oregonstate.edu/core/illumina-hiseq-3000/illumina-barcodes}{Illumina Cross-talk}
 \\end{tabular}
 
 \\vspace{5mm}
 
-\\begin{tabular}{ p{11cm} }
+\\begin{tabular}{ p{12cm} }
 \\href{http://cab.spbu.ru/software/spades/}{Link: SPAdes assembler} \\\\
 \\href{https://blast.ncbi.nlm.nih.gov/Blast.cgi}{Link: BLAST nt identifications} \\\\
 \\end{tabular}
