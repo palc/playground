@@ -271,7 +271,10 @@ open (my $log, '>', "log.txt") or die "$!";
 # BLAST 
 my $frag_size_total=0;
 my $counter=0;
+my $large_contigs=0;
 my $small_contigs=0;
+my $coverage_large_contigs=0;
+my $coverage_small_contigs=0;
 my $ave_length;
 my $inblast = "$samplename" . "_to_blast.fasta";
 my $unused = "unused.fasta";
@@ -291,10 +294,13 @@ while (my $seq_obj = $inseq->next_seq) {
     
     if ( $length < $remove_reads || $coverage < 3){
         $small_contigs++;
+        $coverage_small_contigs = $coverage_small_contigs + $coverage;
         $subsequence=$seq_obj->trunc(1,$length-1);
         $unusedseq->write_seq($subsequence);
         print $log "removed    length: $length coverage: $coverage  $header\n";
     } else {
+        $large_contigs++;
+        $coverage_large_contigs = $coverage_large_contigs + $coverage;
         $subsequence=$seq_obj->trunc(1,$length-1);
         $frag_size_total = $frag_size_total + $length;
         $outseq->write_seq($subsequence);
@@ -303,6 +309,18 @@ while (my $seq_obj = $inseq->next_seq) {
 }
 
 print "\n$counter contigs\n";
+my $ave_coverage_small_contigs = $coverage_small_contigs / $small_contigs;
+my $ave_coverage_large_contigs = $coverage_large_contigs / $large_contigs;
+my $coverage_diff = $ave_coverage_large_contigs - $ave_coverage_small_contigs;
+my $coverage_rating;
+if ( $coverage_diff < 20 ){
+    $coverage_rating = "failed";
+} else {
+    $coverage_rating = "passed";
+}
+$ave_coverage_small_contigs =~ s/(?<=\d)(?=(?:\d\d\d)+\b)/,/g;
+$ave_coverage_large_contigs =~ s/(?<=\d)(?=(?:\d\d\d)+\b)/,/g;
+
 $frag_size_total =~ s/(?<=\d)(?=(?:\d\d\d)+\b)/,/g; 
 print "Total bases: $frag_size_total\n\n";
 
@@ -395,6 +413,9 @@ print "scaffold number: $scaffold_number\n";
 print "scaffold total: $scaffold_total\n";
 print "N50: $n50\n";
 print "L50: $l50\n";
+print "Average small contig coverage: $ave_coverage_small_contigs\n";
+print "Average large contig coverage: $ave_coverage_large_contigs\n";
+print "Coverage Rating: $coverage_rating\n";
 
 # LaTeX file
 my $latex_out = $samplename . ".tex";
@@ -456,9 +477,9 @@ File size & $sizeR1 & $sizeR2 \\\\
 
 \\begin{tabular}{ p{2cm} | p{3cm} | p{3cm} | l | p{2cm} | p{1cm} }
 \\hline
-Scaffolds & Total bases & BLAST total & Contigs \\textless $remove_reads bases & N50 & L50 \\\\
+Scaffolds & Total bases & BLAST total & Contigs \\textless $remove_reads bases & N50 & L50 & Coverage \\\\
 \\hline
-$scaffold_number & $scaffold_total & $frag_size_total & $small_contigs & $n50 & $l50 \\\\
+$scaffold_number & $scaffold_total & $frag_size_total & $small_contigs & $n50 & $l50 & $coverage_rating \\\\
 \\hline
 \\end{tabular}
 
