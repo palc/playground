@@ -272,10 +272,11 @@ open (my $log, '>', "log.txt") or die "$!";
 # BLAST 
 my $frag_size_total=0;
 my $counter=0;
+my $total_length=0;
+my $length_coverage;
 my $large_contigs=0;
 my $small_contigs=0;
-my $coverage_large_contigs=0;
-my $coverage_small_contigs=0;
+
 my $ave_length;
 my $inblast = "$samplename" . "_to_blast.fasta";
 my $unused = "unused.fasta";
@@ -286,39 +287,41 @@ my $unusedseq = Bio::SeqIO->new(-file => ">$unused", -fomat => 'fasta');
 while (my $seq_obj = $inseq->next_seq) {
     $counter++;
     my $length = $seq_obj->length;
-    
+    $total_length=$length;
     my $header = $seq_obj->display_id;
     my $coverage = $header;
     chomp $coverage;
     $coverage =~ s/.*_cov_(.*)/$1/;
-    my $subsequence;
     
+    my $calculated_coverage = $length * $coverage;
+    $length_coverage = $calculated_coverage + $calculated_coverage;
+    
+    my $subsequence;
+    # see remove_reads, $coverage_theshold ~ line 20
     if ( $length < $remove_reads || $coverage < $coverage_treshold){
         $small_contigs++;
-        $coverage_small_contigs = $coverage_small_contigs + $coverage;
         $subsequence=$seq_obj->trunc(1,$length-1);
         $unusedseq->write_seq($subsequence);
         print $log "removed    length: $length coverage: $coverage  $header\n";
     } else {
         $large_contigs++;
-        $coverage_large_contigs = $coverage_large_contigs + $coverage;
         $subsequence=$seq_obj->trunc(1,$length-1);
         $frag_size_total = $frag_size_total + $length;
         $outseq->write_seq($subsequence);
         print $log "kept    length: $length coverage: $coverage  $header\n";
     }
 }
+my $average_coverage = $length_coverage / $total_length;
+print "\n$contigs: counter\n";
+print "The length x coverage: $length_coverage\n";
+print "Total length: $total_length\n";
+print "Average coverage: $average_coverage\n";
 
-print "\n$counter contigs\n";
-my $ave_coverage_small_contigs = $coverage_small_contigs / $small_contigs;
-my $ave_coverage_large_contigs = $coverage_large_contigs / $large_contigs;
-my $coverage_diff = $ave_coverage_large_contigs - $coverage_treshold;
-my $coverage_rating;
-if ( $coverage_diff < 20 ){
-    $coverage_rating = "failed";
-} else {
-    $coverage_rating = "passed";
-}
+print $log "\n$contigs: counter\n";
+print $log "The length x coverage: $length_coverage\n";
+print $log "Total length: $total_length\n";
+print $log "Average coverage: $average_coverage\n";
+
 
 $frag_size_total =~ s/(?<=\d)(?=(?:\d\d\d)+\b)/,/g; 
 print "Total bases: $frag_size_total\n\n";
