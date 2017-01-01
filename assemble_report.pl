@@ -415,10 +415,7 @@ print "scaffold number: $scaffold_number\n";
 print "scaffold total: $scaffold_total\n";
 print "N50: $n50\n";
 print "L50: $l50\n";
-print "Average small contig coverage: $ave_coverage_small_contigs\n";
-print "Average large contig coverage: $ave_coverage_large_contigs\n";
-print "Coverage difference: $coverage_diff\n";
-print "Coverage Rating: $coverage_rating\n";
+
 
 # LaTeX file
 my $latex_out = $samplename . ".tex";
