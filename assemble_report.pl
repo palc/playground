@@ -18,6 +18,7 @@ use Number::Bytes::Human qw(format_bytes);
 
 # Reads < $remove_reads will not be identified
 my $remove_reads = 200;
+my $coverage_treshold = 4;
 
 print "----- START -----\n\n";
 
@@ -292,7 +293,7 @@ while (my $seq_obj = $inseq->next_seq) {
     $coverage =~ s/.*_cov_(.*)/$1/;
     my $subsequence;
     
-    if ( $length < $remove_reads || $coverage < 4){
+    if ( $length < $remove_reads || $coverage < $coverage_treshold){
         $small_contigs++;
         $coverage_small_contigs = $coverage_small_contigs + $coverage;
         $subsequence=$seq_obj->trunc(1,$length-1);
@@ -311,7 +312,7 @@ while (my $seq_obj = $inseq->next_seq) {
 print "\n$counter contigs\n";
 my $ave_coverage_small_contigs = $coverage_small_contigs / $small_contigs;
 my $ave_coverage_large_contigs = $coverage_large_contigs / $large_contigs;
-my $coverage_diff = $ave_coverage_large_contigs - $ave_coverage_small_contigs;
+my $coverage_diff = $ave_coverage_large_contigs - $coverage_treshold;
 my $coverage_rating;
 if ( $coverage_diff < 20 ){
     $coverage_rating = "failed";
@@ -474,11 +475,11 @@ File size & $sizeR1 & $sizeR2 \\\\
 \\textbf{Assembly}
 \\vspace{2mm}
 
-\\begin{tabular}{ p{2cm} | p{3cm} | p{3cm} | l | p{2cm} | p{1cm} }
+\\begin{tabular}{ p{2cm} | p{3cm} | p{3cm} | l | l | l }
 \\hline
-Scaffolds & Total bases & BLAST total & Contigs \\textless $remove_reads bases & N50 & L50 & Coverage \\\\
+Scaffolds & Total bases & BLAST total & Contigs \\textless $remove_reads bases & N50 & L50 \\\\
 \\hline
-$scaffold_number & $scaffold_total & $frag_size_total & $small_contigs & $n50 & $l50 & $coverage_rating \\\\
+$scaffold_number & $scaffold_total & $frag_size_total & $small_contigs & $n50 & $l50  \\\\
 \\hline
 \\end{tabular}
 
@@ -497,7 +498,7 @@ my $section3 = <<END_MESSAGE;
 \\end{longtable}
 
 \\begin{tabular}{ p{15cm} }
-To minimize false indentifications caused by indexing cross-talk contigs \\textless $remove_reads bases or with \\textless 4X coverage have not been identified. See link for additional information: \\href{http://cgrb.oregonstate.edu/core/illumina-hiseq-3000/illumina-barcodes}{Illumina Cross-talk}
+To minimize false indentifications caused by indexing cross-talk contigs \\textless $remove_reads bases or with \\textless ${coverage_treshold}X coverage have not been identified. See link for additional information: \\href{http://cgrb.oregonstate.edu/core/illumina-hiseq-3000/illumina-barcodes}{Illumina Cross-talk}
 \\end{tabular}
 
 \\vspace{5mm}
