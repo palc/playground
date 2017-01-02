@@ -479,7 +479,7 @@ File size & $sizeR1 & $sizeR2 \\\\
 
 \\begin{tabular}{ p{2cm} | l | p{3cm} | p{3cm} | l | l | l }
 \\hline
-Scaffolds & Ave_Cov & Total bases & BLAST total & Contigs \\textless $remove_reads bases & N50 & L50 \\\\
+Scaffolds & Ave cov & Total bases & BLAST total & Contigs \\textless $remove_reads bases & N50 & L50 \\\\
 \\hline
 $scaffold_number & $scaffold_total & $frag_size_total & $small_contigs & $n50 & $l50  \\\\
 \\hline
