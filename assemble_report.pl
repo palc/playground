@@ -5,6 +5,7 @@ use warnings;
 #use 5.010;
 
 use File::Basename;
+use Math::Round;
 use Data::Dumper qw(Dumper);
 use Cwd;
 use Bio::Seq;
@@ -287,15 +288,18 @@ my $unusedseq = Bio::SeqIO->new(-file => ">$unused", -fomat => 'fasta');
 while (my $seq_obj = $inseq->next_seq) {
     $counter++;
     my $length = $seq_obj->length;
-    $total_length=$total_length+$length;
+    $total_length=$total_length + $length;
     my $header = $seq_obj->display_id;
     my $coverage = $header;
     chomp $coverage;
     $coverage =~ s/.*_cov_(.*)/$1/;
     
     my $calculated_coverage = $length * $coverage;
-    $length_coverage = $calculated_coverage + $calculated_coverage;
-    
+    #print "calculated_coverage: $calculated_coverage\n";
+
+    $length_coverage = $length_coverage + $calculated_coverage;
+    #print "length_coverage $length_coverage\n";
+  
     my $subsequence;
     # see remove_reads, $coverage_theshold ~ line 20
     if ( $length < $remove_reads || $coverage < $coverage_treshold){
@@ -312,7 +316,7 @@ while (my $seq_obj = $inseq->next_seq) {
     }
 }
 my $average_coverage = $length_coverage / $total_length;
-$average_coverage =~ s/(?<=\d)(?=(?:\d\d\d)+\b)/,/g;
+$average_coverage = nearest(.01,$average_coverage);
 
 print "\ncontigs: $counter\n";
 print "The length x coverage: $length_coverage\n";
@@ -477,11 +481,11 @@ File size & $sizeR1 & $sizeR2 \\\\
 \\textbf{Assembly}
 \\vspace{2mm}
 
-\\begin{tabular}{ p{2cm} | l | p{3cm} | p{3cm} | l | l | l }
+\\begin{tabular}{ p{2cm} | p{2cm} | p{2cm} | p{3cm} | l | l | l }
 \\hline
-Scaffolds & Ave cov & Total bases & BLAST total & Contigs \\textless $remove_reads bases & N50 & L50 \\\\
+Scaffolds & Total bases & Ave cov & BLAST total & Contigs \\textless $remove_reads bases & N50 & L50 \\\\
 \\hline
-$scaffold_number & $scaffold_total & $frag_size_total & $small_contigs & $n50 & $l50  \\\\
+$scaffold_number & $scaffold_total & ${average_coverage}X & $frag_size_total & $small_contigs & $n50 & $l50  \\\\
 \\hline
 \\end{tabular}
 
