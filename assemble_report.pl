@@ -187,7 +187,7 @@ if ($read_type eq "paired") {
 
 if ($read_type eq "paired") {
     print "RUNNING SPADES\n\n";
-    #    `spades.py -t 32 -k 45,47,49,51,53,57,59,61,63,65,77,99,127 --careful -1 $input_R1_zip -2 $input_R2_zip -o ./`;
+    `spades.py -t 32 -k 45,47,49,51,53,57,59,61,63,65,77,99,127 --careful -1 $input_R1_zip -2 $input_R2_zip -o ./`;
 } else {
     print "RUNNING SPADES\n\n";
     `spades.py -t 32 -k 45,47,49,51,53,57,59,61,63,65,77,99,127 --mismatch-correction -s $input_zip -o ./`;
@@ -336,7 +336,7 @@ my $blast_order = "qlen slen pident mismatch evalue bitscore stitle saccver qseq
 my $outblast = "$samplename" . "_id.txt";
 my $outblast_uniq = "$samplename" . "_id_uniq.txt";
 # word_size needs to be set to 11 to return hits for all contigs
-#`blastn -query $inblast -db /data/BLAST/db/nt -word_size 11 -num_threads 40 -out $outblast -max_target_seqs 1 -outfmt "6 $blast_order"`;
+`blastn -query $inblast -db /data/BLAST/db/nt -word_size 11 -num_threads 40 -out $outblast -max_target_seqs 1 -outfmt "6 $blast_order"`;
 
 # know bug in -max_target_seqs.  Parameter used within blastn algorithm causing multiple hits to sometimes be returned
 `awk -F'\t' '!seen[\$9]++' $outblast > $outblast_uniq`;
@@ -437,7 +437,9 @@ my $unused = "unused.fasta";
 my $outblast_unused = "outblast_unused.txt";
 `blastn -query $unused -db /data/BLAST/db/nt -word_size 11 -num_threads 40 -out $outblast_unused -max_target_seqs 1 -outfmt "6 $blast_order"`;
 my $unused_outblast_uniq = "unused_outblast_unused.txt";
-`awk -F'\t' '!seen[\$9]++' $outblast > $unused_outblast_uniq`;
+`awk -F'\t' '!seen[\$9]++' $outblast_unused > $unused_outblast_uniq`;
+my $unused_contigs_pdf = $samplename . "unused_contigs.pdf";
+`enscript $unused_outblast_uniq -B -j -r -f "Courier7" -o - | ps2pdf - $unused_contigs_pdf`;
 
 my $section1 = <<END_MESSAGE;
 \\documentclass[a4paper,11pt]{article}
