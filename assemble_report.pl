@@ -287,7 +287,7 @@ my $unusedseq = Bio::SeqIO->new(-file => ">$unused", -fomat => 'fasta');
 while (my $seq_obj = $inseq->next_seq) {
     $counter++;
     my $length = $seq_obj->length;
-    $total_length=$length;
+    $total_length=$total_length+$length;
     my $header = $seq_obj->display_id;
     my $coverage = $header;
     chomp $coverage;
@@ -312,12 +312,14 @@ while (my $seq_obj = $inseq->next_seq) {
     }
 }
 my $average_coverage = $length_coverage / $total_length;
-print "\n$contigs: counter\n";
+$average_coverage =~ s/(?<=\d)(?=(?:\d\d\d)+\b)/,/g;
+
+print "\ncontigs: $counter\n";
 print "The length x coverage: $length_coverage\n";
 print "Total length: $total_length\n";
 print "Average coverage: $average_coverage\n";
 
-print $log "\n$contigs: counter\n";
+print $log "\ncontigs: $counter\n";
 print $log "The length x coverage: $length_coverage\n";
 print $log "Total length: $total_length\n";
 print $log "Average coverage: $average_coverage\n";
@@ -475,9 +477,9 @@ File size & $sizeR1 & $sizeR2 \\\\
 \\textbf{Assembly}
 \\vspace{2mm}
 
-\\begin{tabular}{ p{2cm} | p{3cm} | p{3cm} | l | l | l }
+\\begin{tabular}{ p{2cm} | l | p{3cm} | p{3cm} | l | l | l }
 \\hline
-Scaffolds & Total bases & BLAST total & Contigs \\textless $remove_reads bases & N50 & L50 \\\\
+Scaffolds & Ave_Cov & Total bases & BLAST total & Contigs \\textless $remove_reads bases & N50 & L50 \\\\
 \\hline
 $scaffold_number & $scaffold_total & $frag_size_total & $small_contigs & $n50 & $l50  \\\\
 \\hline
