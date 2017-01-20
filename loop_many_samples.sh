@@ -10,8 +10,9 @@ while [ $files -gt 1 ]; do
     mv `ls *gz | head -30` ${COUNTER}
     cd ${COUNTER}     
     packagefastqs.sh
-    currentdir=`pwd`; for f in *; do cd $currentdir; echo $f; cd ./$f; processZips.sh ceti1 & done; wait 
+    #currentdir=`pwd`; for f in *; do cd $currentdir; echo $f; cd ./$f; processZips.sh ceti1 & done; wait 
     #email_loopFiles.sh; wait
+    currentdir=`pwd`; for f in *; do cd $currentdir; echo $f; cd ./$f; simple_spades.sh & done; wait
     cd ${root}
     files=`ls *gz | wc -l`
     echo "files left to do: $files"
