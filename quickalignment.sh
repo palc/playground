@@ -24,6 +24,14 @@ if [[ -z $gatk ]]; then
     exit 1
 fi
 
+PILON=`which pilon.jar`
+if [[ -z $PILON ]]; then
+    echo "pilon.jar is not in PATH"
+    echo "Add pilon.jar to PATH"
+    echo "See line: $LINENO"
+exit 1
+fi
+
 # Grab reads and reference and place them in variables
 ref=`ls | grep .fasta`
 echo "Reference Input:  $ref"
@@ -166,6 +174,11 @@ java -Xmx4g -jar ${gatk} -R $ref -T UnifiedGenotyper -I $n.sorted.bam -o ${n}.UG
 
 # make reference guided contig
 java -jar ${gatk} -T FastaAlternateReferenceMaker -R $ref -o ${n}.readreference.fasta -V ${n}.UG.vcf
+
+# Run Pilon
+mkdir pilon
+java -Xmx16G -jar ${PILON} --genome $ref --bam ${n}.sorted.bam --output ./pilon/${n}-pilon --vcf --vcfqe --tracks --iupac
+awk ' $5 != "." || $7 != "PASS" {print $0}' ./pilon/${n}-pilon.vcf > ${n}-pilon-calls.vcf
 
 wait
 

@@ -160,7 +160,7 @@ bamtools coverage -in ${strain}.sorted.bam | awk -v x=${strain} 'BEGIN{OFS="\t"}
 #Mean depth of coverage
 meancov=`awk '{ sum += $3 } END { if (NR > 0) print sum / NR }' ${strain}-coveragefile`
 
-java -Xmx4g -jar ${gatk} -R $ref -T UnifiedGenotyper -I $strain.sorted.bam -o ${strain}.UG.vcf -nct 8
+java -Xmx4g -jar ${gatk} -R $ref -T UnifiedGenotyper -out_mode EMIT_ALL_SITES -I $strain.sorted.bam -o ${strain}.UG.vcf -nct 8
 
 echo '##fileformat=VCFv4.1' > $strain-highqualitysnps.vcf
 echo '#CHROM  POS     ID      REF     ALT     QUAL    FILTER  INFO    FORMAT  SAMPLE1 rsIDs' | awk 'BEGIN{OFS="\t"}{print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11}' >> $strain-highqualitysnps.vcf
