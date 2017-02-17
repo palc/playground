@@ -57,7 +57,7 @@ while(my$seqobj = $seqio->next_seq) {
         #print "$main_desc\n";
     }
     my $seq = $seqobj->seq;                 # and there's your value
-    $header_name = $display_id . "_" . $main_desc;
+    $header_name = $display_id; # . "_" . $main_desc;
     $sequences{$header_name} = $seq;
 }
 
