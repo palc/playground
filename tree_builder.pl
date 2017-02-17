@@ -81,7 +81,7 @@ print "average size: $average_size\n";
 print $log "Average FASTA length: $average_size\n\n";
 
 # Remove genomes < $select_size
-my $minus_number=90;
+my $minus_number=9000;
 my $select_size = $average_size - $minus_number;
 
 print "If sequences $minus_number less than the average of $average_size they are removed and listed below...\n";

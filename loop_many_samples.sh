@@ -7,7 +7,7 @@ root=`pwd`
 
 while [ $files -gt 1 ]; do
     mkdir $COUNTER 
-    mv `ls *gz | head -30` ${COUNTER}
+    mv `ls *gz | head -20` ${COUNTER}
     cd ${COUNTER}     
     packagefastqs.sh
     #currentdir=`pwd`; for f in *; do cd $currentdir; echo $f; cd ./$f; processZips.sh ceti1 & done; wait 
