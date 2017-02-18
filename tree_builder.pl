@@ -58,7 +58,8 @@ while(my$seqobj = $seqio->next_seq) {
     }
     my $seq = $seqobj->seq;                 # and there's your value
     $header_name = $display_id; # . "_" . $main_desc;
-    $sequences{$header_name} = $seq;
+    #$sequences{$header_name} = $seq;
+    $sequences{$seqobj->display_id} = $seq;
 }
 
 # Get average FASTA length
