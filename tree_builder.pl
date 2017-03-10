@@ -241,7 +241,7 @@ print "out_alignment_file: $out_alignment_file\n";
 #   -b --> random seed
 #   -N --> number of alternative runs on distinct starting trees
 print "RAxML running...\n";
-`raxmlHPC-PTHREADS-AVX2 -s $out_alignment_file -f a -x 12345 -T 50 -p 12345 -N 100 -m GTRCAT -n $tree_file`;
+`raxml -s $out_alignment_file -f a -x 12345 -T 50 -p 12345 -N 100 -m GTRCAT -n $tree_file`;
 
 # remove unneeded files
 `rm *dnd *reduced RAxML_bootstrap* RAxML_info* RAxML_bipartitions*`;
