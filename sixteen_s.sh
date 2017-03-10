@@ -50,6 +50,7 @@ rm ./find_contig_cut.py
 if [[ $2 == 16s ]]; then 
     sixteen_s_seed="/home/shared/myseq16s.fasta"
     BLASTdatabase="/data/BLAST/db/16SMicrobial"
+    #BLASTdatabase="/data/BLAST/db/nt"
     #BLASTdatabase="/data/BLAST/db/other_genomic"
 elif [[ $2 == rpoB ]]; then
     sixteen_s_seed="/home/shared/myrpoB1.fasta"
@@ -124,7 +125,7 @@ while read l; do
     cd ./finding${counter}
     
     # Output format as table file
-    blastn -query ./finding${counter}.fasta -db $BLASTdatabase -num_threads 40 -out table_blast${counter} -outfmt '6 sacc qlen slen gaps length qcovs evalue bitscore pident mismatch stitle' -num_alignments 15
+    blastn -query ./finding${counter}.fasta -db $BLASTdatabase -word_size 11 -num_threads 40 -out table_blast${counter} -outfmt '6 sacc qlen slen gaps length qcovs evalue bitscore pident mismatch stitle' -num_alignments 15
     avium_check=$(head -4 table_blast${counter} | awk 'BEGIN{FS="\t"} {print $11}' | awk '{print $2}' | grep "avium" | sort -u) 
     if [[ $avium_check == avium ]] && [[ $2 == rpoB ]]; then
         printf "\n  avium found \n  avium specific BLAST search preformed\n\n"
