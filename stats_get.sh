@@ -1,6 +1,8 @@
 #!/bin/sh
 
-infile = $1
+infile=$1
+
+name=`echo $infile | sed 's/\.stats\.txt//' | sed 's/stats-//' | sed 's/\.txt//'`
 
 read1=`grep -A 2 "fastq.gz file sizes" $infile | tail -1`
 read2=`grep -A 2 "fastq.gz file sizes" $infile | tail -2 | head -1`
@@ -11,7 +13,6 @@ ref_with_coverage=`grep "eference.*coverage" $infile | awk '{print $NF}'`
 mean_length=`grep -A 1 "Mean_Read_Length" $infile | tail -1`
 quality_snps=`grep -A 1 "SNPs of AC2" $infile | tail -1`
 
-printf "$read1\t$read2\t$ave_coverage\t$ref_with_coverage\t$mean_length\t$quality_snps\n"
-
+printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\n" "$name" "$read1" "$read2" "$ave_coverage" "$ref_with_coverage" "$mean_length" "$quality_snps"
 
 # tstuber 2017-04-19
