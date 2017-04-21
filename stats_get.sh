@@ -1,6 +1,6 @@
 #!/bin/sh
 
-infile = $1
+infile=$1
 
 read1=`grep -A 2 "fastq.gz file sizes" $infile | tail -1`
 read2=`grep -A 2 "fastq.gz file sizes" $infile | tail -2 | head -1`
