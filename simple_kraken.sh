@@ -123,7 +123,7 @@ if [[ $2 == na ]]; then
     printf "No email is being sent\n"
 else
     printf "Sent email to $2\n"
-    echo "idkraken.sh $1 has completed" | mutt -s "Sameple: $strain" -a ${strain}-*.html -- ${email}
+    echo "idkraken.sh $1 has completed" | mutt -s "Sample: $strain" -a ${strain}-*.html -- ${email}
 fi
 
 endtime=`date +%s`
