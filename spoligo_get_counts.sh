@@ -1,6 +1,6 @@
 #!/bin/sh
 
-infile = $1
+infile=$1
 
 f19=`grep -c "AAGTCACCTCGCCCACACCGTCGAA" $infile`
 r19=`grep -c "TTCGACGGTGTGGGCGAGGTGACTT" $infile`
@@ -20,6 +20,7 @@ r34a1=`agrep -1 -c "TTCGACGGTGTGGGCGAGGTGACTT" $infile`
 f36a1=`agrep -1 -c "CGAAATCCAGCACCACATCCGCAGC" $infile`
 r36a1=`agrep -1 -c "GCTGCGGATGTGGTGCTGGATTTCG" $infile`
 
-fprint "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" "$infile" "f19" "r19" "f34" "r34" "f36" "r36" "f19a1" "r19a1" "f34a1" "r34a1" "f36a1" "r36a1"
+printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" "$infile" "spacercount: $f19" "spacercount: $r19" "spacercount: $f34" "spacercount: $r34" "spacercount: $f36" "spacercount: $r36" "spacercount: $f19a1" "spacercount: $r19a1" "spacercount: $f34a1" "spacercount: $r34a1" "spacercount: $f36a1" "spacercount: $r36a1"
+
 
 # tstuber 2017-04-19
