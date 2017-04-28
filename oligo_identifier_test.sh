@@ -24,11 +24,17 @@ for i in *_R1*; do
 #(
 echo "**********************ID FILES START**********************"
 
-p16M0="TCCCGCCGCCATGCCGCCGAAAGTCGCCGT"
-p63B1="CCTGTTTAAAAGAATCGTCGGAACCGCTCT"
-Ether2="CGAAATCGTGGTGAAGGACGGGACCGAACC"
+S19Indel2-1-F="CCCAACTCGTTAAGGCCGCA"
+S19Indel2-1-P="AGAGACAGAGAGACAGAGGCGTCGA"
+S19Indel2-1-R="CCAATCGGGCTTCAGTCCCT"
+S19Indel6-2-F="CCGATGACCTCATGATCGCCA"
+S19Indel6-2-P="TCGCGGCGCATGAAATTCGCG"
+S19Indel6-2-R="GCGAATTTGGCGAGGAAGGC"
+S19Indel7-2-F="GGTATGCTGCTCGTCATCCTCA"
+S19Indel7-2-P="GCTGGGGCTGGCCGGTCTG"
+S19Indel7-2-R="GAGCGCGCAGGTGATGAG"
 
-targets=(p16M0 p63B1 Ether2)
+targets=(S19Indel2-1-F S19Indel2-1-P S19Indel2-1-R S19Indel6-2-F S19Indel6-2-P S19Indel6-2-R S19Indel7-2-F S19Indel7-2-P S19Indel7-2-R)
 
 forReads=`echo $i`                                                                           
 echo "Forward Reads:  $forReads"                                                             
